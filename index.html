@@ -32,6 +32,10 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 .parent-summary{font-size:11px;color:var(--mint);margin-top:5px}
 @media(max-width:480px){.monster .art img{width:128px;height:128px}}
 
+
+.share-preview{margin:10px auto 0;max-width:480px;padding:14px;border:1px solid #465477;border-radius:14px;background:linear-gradient(145deg,#11182e,#252447);text-align:left}
+.share-preview strong{color:#ffd778}.share-preview .share-title{font-size:17px;font-weight:800;margin-bottom:6px}.share-preview p{font-size:12px;color:#d5def4;margin:4px 0}
+
 </style>
 </head>
 <body>
@@ -46,7 +50,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 <div class="parents"><div class="parentbox"><label for="kindA">親の種族 A</label><img id="parentArtA" class="sprite-art" alt="親Aのモンスター"><select id="kindA" class="kind-select"></select><div id="parentNameA" class="parent-summary"></div></div><div class="parentbox"><label for="kindB">親の種族 B</label><img id="parentArtB" class="sprite-art" alt="親Bのモンスター"><select id="kindB" class="kind-select"></select><div id="parentNameB" class="parent-summary"></div></div></div>
 <div class="breed-actions"><button class="btn primary" id="breedBtn">✦ 配合を実行する</button><button class="btn" id="autoBreedBtn">🎲 ランダム配合</button></div><div class="breed-actions"><button class="btn" id="resetBtn">データ初期化</button></div><div class="note">種族を選ぶと、その種族の個体を自動で選びます。ランダム配合なら親選びもワンタップ！</div></div>
 <div id="milestone" class="milestone"><strong id="milestoneTitle">研究マイルストーン達成！</strong><p id="milestoneText">研究成果を記録しました。</p></div>
-<div id="result" class="panel result"><div class="tag">NEW DISCOVERY</div><canvas id="resultArt" width="256" height="256"></canvas><h3 id="resultName"></h3><div id="resultMeta"></div><p class="lore" id="resultLore"></p></div>
+<div id="result" class="panel result"><div class="tag">NEW DISCOVERY</div><canvas id="resultArt" width="256" height="256"></canvas><h3 id="resultName"></h3><div id="resultMeta"></div><p class="lore" id="resultLore"></p><div class="breed-actions"><button class="btn primary" id="shareBuddyBtn">📣 相棒をSNSでシェア</button><button class="btn" id="copyBuddyBtn">🔗 投稿文をコピー</button></div><p class="note">配合した相棒の名前・配合回数・ゲームURLを投稿できるよ。</p></div>
 <div class="panel"><h2>🌱 初期研究個体</h2><p class="sub">各種族1体ずつ。ここから未知の組み合わせが始まる。</p><div class="grid" id="starterGrid"></div></div>
 </section>
 <section id="book" class="section"><div class="panel"><h2>📖 モンスター図鑑</h2><p class="sub">発見した個体のイラスト・種族・レアリティ・生態メモを記録。</p><div class="grid" id="bookGrid"></div></div></section>
@@ -125,7 +129,7 @@ c.restore();
 }
 function artFor(m){if(m.rarity!=='幻')return null;if(m.kind==='竜')return SPECIES_ART.dragon;if(m.kind==='蟲')return SPECIES_ART.insect;return SPECIES_ART.mythic}
 function pixelSize(m){return m.rarity==='ノーマル'?32:m.rarity==='変異'?64:m.rarity==='レア'?128:m.rarity==='超レア'?256:256}
-function makeArtElement(m,cls='sprite-art'){let src=artFor(m);if(src){let img=document.createElement('img');img.src=src;img.alt=m.name+'の固有イラスト';img.className=cls;img.dataset.pixelSize='unique';return img}let size=pixelSize(m);let c=document.createElement('canvas');c.width=size;c.height=size;c.className=cls;c.dataset.pixelSize=size;sprite(c,m);return c}
+function makeArtElement(m,cls='sprite-art'){let src=artFor(m);if(src){let img=document.createElement('img');img.src=src;img.alt=m.name+'の固有イラスト';img.className=cls;img.dataset.pixelSize='unique';return img}let size=pixelResolution(m.rarity);let c=document.createElement('canvas');c.width=size;c.height=size;c.className=cls;c.dataset.pixelSize=size;drawGeneratedSprite(c,m);return c}
 function canvasFor(m,cls=''){let c=document.createElement('canvas');c.width=64;c.height=64;if(cls)c.className=cls;sprite(c,m);return c}
 function createCard(m){let d=document.createElement('article');d.className='monster';let art=document.createElement('div');art.className='art';art.appendChild(makeArtElement(m));d.appendChild(art);let h=document.createElement('h3');h.textContent=m.name;d.appendChild(h);let meta=document.createElement('div');meta.className='meta';meta.textContent=`${m.kind}種 · ${m.rarity} · ${m.rarity==='幻'?'固有イラスト':pixelSize(m)+'×'+pixelSize(m)} · ID ${m.id}`;d.appendChild(meta);let p=document.createElement('p');p.textContent=lore(m);d.appendChild(p);return d}
 let selectionMode='kind';
@@ -137,7 +141,116 @@ function render(){ $('breedCount').textContent=state.breedCount;$('foundCount').
  $('starterGrid').replaceChildren(...STARTERS.map(createCard));$('bookGrid').replaceChildren(...state.found.slice().reverse().map(createCard));fillSelects();
  $('logList').replaceChildren();if(!state.logs.length){let li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。最初の配合を実行しよう！';$('logList').appendChild(li)}else state.logs.slice().reverse().forEach(x=>{let li=document.createElement('li'),time=document.createElement('time');time.textContent=x.time;li.append(time,document.createTextNode(x.text));$('logList').appendChild(li)});
 }
-function showResult(m,isNew){let old=$('resultArt'),art=makeArtElement(m,'sprite-art');art.id='resultArt';old.replaceWith(art);$('resultName').textContent=m.name;$('resultMeta').textContent=`${m.kind}種 · ${m.rarity} · ${m.rarity==='幻'?'固有イラスト':pixelSize(m)+'×'+pixelSize(m)+' pixel'} · ID ${m.id}`;$('resultLore').textContent=lore(m);$('result').classList.add('show');if(isNew){let tag=document.createElement('span');tag.className='tag';tag.textContent='NEW';$('resultMeta').appendChild(document.createTextNode(' '));$('resultMeta').appendChild(tag)}$('result').scrollIntoView({behavior:'smooth',block:'center'})}
+
+function inheritedTraits(a,b,h){
+ const traits=[];
+ const candidates=[
+  ...(a.traits||[]), ...(b.traits||[])
+ ];
+ const defaults={ '獣':['耳','爪','尾'],'竜':['角','翼','長尾'],'精霊':['浮遊','光輪','霊体'],'植物':['葉角','蔓','花弁'],'鉱石':['結晶','岩殻','鉱脈'],'影':['影腕','煙尾','発光眼'],'水棲':['鰭','鰓','水泡'],'鳥':['翼','羽冠','鉤爪'],'機械':['装甲','歯車','発光核'],'蟲':['触角','複眼','節脚'],'幻獣':['霊翼','宝石核','光輪']};
+ const all=[...(defaults[a.kind]||[]),...(defaults[b.kind]||[])];
+ for(let i=0;i<all.length;i++){if(((h >>> (i%24))&3)!==0 && !traits.includes(all[i]))traits.push(all[i]);}
+ for(const t of candidates){if(traits.length<5&&!traits.includes(t))traits.push(t)}
+ return traits.slice(0,5);
+}
+function pixelResolution(rarity){return rarity==='ノーマル'?32:rarity==='変異'?64:rarity==='レア'?128:rarity==='超レア'?256:256}
+function drawGeneratedSprite(canvas,m){
+ const size=canvas.width,ctx=canvas.getContext('2d');ctx.clearRect(0,0,size,size);ctx.imageSmoothingEnabled=false;
+ const s=size/64;ctx.save();ctx.scale(s,s);
+ const h=hash(String(m.id)+m.name), base=m.color||'#8ac8d2', accent=m.accent||'#f5e8aa';
+ const pal=[base,accent,m.secondary||'#3c526f'];
+ const px=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+ // Small resolution = intentionally simple; higher tiers add anatomy and texture.
+ const complexity=m.rarity==='ノーマル'?1:m.rarity==='変異'?2:m.rarity==='レア'?3:m.rarity==='超レア'?4:5;
+ const motif=m.motif||'beast';
+ // silhouette varies by species family
+ if(motif==='dragon'){
+   px(13,24,31,22,base);px(35,27,15,11,base);px(45,24,10,10,base);px(48,28,7,3,accent);
+   px(17,14,10,17,base);px(23,9,7,13,accent);px(30,12,7,12,base);px(12,18,8,5,accent);
+   px(17,42,6,10,base);px(37,42,6,10,base);px(42,43,15,4,base);px(54,42,5,3,accent);
+   if(complexity>1){px(8,23,9,4,accent);px(9,19,5,5,base);px(20,28,5,12,accent);px(28,30,5,10,accent)}
+ } else if(motif==='insect'){
+   px(26,11,12,10,base);px(22,21,20,13,base);px(19,33,26,13,base);px(24,45,16,5,base);
+   px(27,6,3,9,accent);px(35,6,3,9,accent);px(19,17,5,5,accent);px(40,17,5,5,accent);
+   px(10,24,13,3,base);px(8,31,14,3,base);px(41,24,13,3,base);px(43,31,13,3,base);
+   if(complexity>1){px(23,24,4,4,'#ff6e91');px(37,24,4,4,'#ff6e91');px(27,29,10,3,accent)}
+ } else if(['spirit','mythic'].includes(motif)){
+   px(22,17,20,25,base);px(25,11,14,9,base);px(27,42,10,9,base);
+   px(9,21,14,8,accent);px(6,16,12,7,base);px(41,21,14,8,accent);px(46,16,12,7,base);
+   px(28,7,3,5,accent);px(34,7,3,5,accent);
+ } else if(motif==='plant'){
+   px(22,24,20,24,base);px(17,31,7,12,base);px(40,31,7,12,base);px(25,44,6,8,base);px(34,44,6,8,base);
+   px(11,14,15,8,accent);px(16,19,8,9,base);px(38,14,15,8,accent);px(40,19,8,9,base);px(28,12,8,12,accent);
+ } else if(motif==='ore'){
+   px(18,20,28,8,base);px(14,27,36,17,base);px(21,43,22,7,base);px(23,12,8,12,accent);px(34,12,8,12,accent);
+   px(23,29,7,9,accent);px(35,31,7,8,accent);
+ } else if(motif==='shadow'){
+   px(22,15,20,8,base);px(17,22,30,23,base);px(21,44,8,8,base);px(36,44,8,8,base);px(12,28,7,11,base);px(45,28,7,11,base);
+ } else if(motif==='water'){
+   px(20,19,24,8,base);px(15,26,34,16,base);px(21,42,22,7,base);px(8,28,9,7,accent);px(47,28,9,7,accent);px(25,13,5,5,accent);px(34,13,5,5,accent);
+ } else if(motif==='bird'){
+   px(23,22,20,19,base);px(28,14,14,12,base);px(39,18,11,6,base);px(49,20,6,3,accent);px(14,27,13,12,accent);px(28,40,5,10,base);px(37,40,5,10,base);
+ } else if(motif==='machine'){
+   px(20,15,24,9,base);px(16,24,32,22,base);px(21,46,8,6,base);px(36,46,8,6,base);px(25,18,5,5,accent);px(34,18,5,5,accent);px(27,29,10,9,accent);px(12,27,5,14,base);px(47,27,5,14,base);
+ } else {
+   px(20,22,25,22,base);px(15,28,8,12,base);px(42,28,8,12,base);px(23,16,7,8,base);px(36,16,7,8,base);px(24,43,7,8,base);px(35,43,7,8,base);px(24,12,6,6,accent);px(35,12,6,6,accent);
+ }
+ // Face, palette and detail density increase with rarity.
+ px(24,28,5,4,'#111629');px(36,28,5,4,'#111629');px(25,29,2,2,accent);px(37,29,2,2,accent);px(29,36,7,2,'#111629');
+ if(complexity>=2){
+   px(15,25,4,3,accent);px(43,25,4,3,accent);px(22,39,5,3,pal[2]);px(37,39,5,3,pal[2]);
+   for(let i=0;i<5;i++){px(14+((h>>(i*3))%34),22+((h>>(i*2+1))%21),2,2,i%2?accent:pal[2])}
+ }
+ if(complexity>=3){
+   // layered plates, extra appendages and markings
+   px(19,24,4,9,accent);px(41,24,4,9,accent);px(26,21,3,5,pal[2]);px(35,21,3,5,pal[2]);
+   px(17,44,4,7,accent);px(43,44,4,7,accent);
+   for(let i=0;i<7;i++){px(12+((h>>(i*2))%40),16+((h>>(i*3+1))%31),1,3,accent)}
+ }
+ if(complexity>=4){
+   // horns/crystals/aura and additional body parts
+   px(25,5,4,10,accent);px(35,4,4,11,accent);px(7,20,5,4,accent);px(52,20,5,4,accent);
+   px(8,38,5,6,pal[2]);px(51,38,5,6,pal[2]);px(28,46,3,6,accent);px(34,46,3,6,accent);
+   for(let i=0;i<8;i++){px(7+((h>>(i*2))%50),8+((h>>(i*3+1))%47),2,2,i%2?accent:'#8ff6ed')}
+ }
+ if(complexity>=5){
+   // bespoke-ish final-tier sigil / halo; true unique art is handled separately
+   px(22,3,20,2,'#ff8fe0');px(22,3,2,7,'#ff8fe0');px(40,3,2,7,'#ff8fe0');
+   px(28,1,8,3,'#fff0a8');px(4,26,3,3,'#c6a5ff');px(56,26,3,3,'#c6a5ff');
+ }
+ // inherited anatomy hints drawn on the silhouette
+ const traits=m.traits||[];
+ if(traits.includes('角')){px(20,10,4,8,accent);px(40,10,4,8,accent)}
+ if(traits.includes('翼')||traits.includes('霊翼')){px(8,23,9,5,accent);px(47,23,9,5,accent)}
+ if(traits.includes('長尾')||traits.includes('尾')){px(43,40,12,3,base);px(53,38,5,4,accent)}
+ if(traits.includes('触角')){px(25,5,2,8,accent);px(37,5,2,8,accent)}
+ if(traits.includes('結晶')||traits.includes('宝石核')){px(29,22,6,7,'#9be9ff');px(30,23,4,5,'#f4ffff')}
+ if(traits.includes('蔓')){px(12,37,7,2,'#7de08a');px(8,34,5,4,'#7de08a')}
+ ctx.restore();
+}
+
+let currentResult=null;
+function shareText(m){
+ const url='https://94vj269bms-rgb.github.io/MonsterLAB_beta/';
+ return `🎉 ${state.breedCount}回目の配合で出会いました！\n相棒：${m.name}\n種族：${m.kind}種\nレアリティ：${m.rarity}\n#MONSTERLAB #相棒モンスター\n${url}`;
+}
+async function shareBuddy(){
+ if(!currentResult)return;
+ const text=shareText(currentResult);
+ if(navigator.share){try{await navigator.share({title:'MONSTER LAB｜相棒発見！',text,url:'https://94vj269bms-rgb.github.io/MonsterLAB_beta/'});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+ try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！SNSに貼り付けてね。');}
+ catch(e){prompt('この投稿文をコピーしてSNSに貼り付けてね',text);}
+}
+async function copyBuddy(){if(!currentResult)return;const text=shareText(currentResult);try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！');}catch(e){prompt('投稿文をコピーしてね',text);}}
+function showResult(m,isNew){
+ currentResult=m;
+ let old=$('resultArt'),art=makeArtElement(m,'sprite-art');art.id='resultArt';old.replaceWith(art);
+ $('resultName').textContent=m.name;
+ $('resultMeta').textContent=`${m.kind}種 · ${m.rarity} · ${m.rarity==='幻'?'固有イラスト':pixelResolution(m.rarity)+'×'+pixelResolution(m.rarity)} · ID ${m.id}`;
+ $('resultLore').textContent=lore(m);$('result').classList.add('show');
+ if(isNew){let tag=document.createElement('span');tag.className='tag';tag.textContent='NEW';$('resultMeta').appendChild(document.createTextNode(' '));$('resultMeta').appendChild(tag)}
+ $('result').scrollIntoView({behavior:'smooth',block:'center'});
+}
 function breed(){let [a,b]=chosenParents();state.breedCount++;let seed=`${a.id}|${b.id}|${state.breedCount}`,h=hash(seed);
  let pool=[];for(let i=0;i<5;i++)pool.push(a.kind);for(let i=0;i<5;i++)pool.push(b.kind);for(const k of KINDS)pool.push(k);
  let kind=pool[h%pool.length],rarity=rarityFor(seed,state.breedCount);let motifs={ '獣':'beast','竜':'dragon','精霊':'spirit','植物':'plant','鉱石':'ore','影':'shadow','水棲':'water','鳥':'bird','機械':'machine','幻獣':'mythic','蟲':'insect'};
@@ -145,7 +258,7 @@ function breed(){let [a,b]=chosenParents();state.breedCount++;let seed=`${a.id}|
  let name=names[kind][h%4];if(rarity==='幻')name=['星界の'+name,'夢幻の'+name,'神話級'+name][(h>>4)%3];else if(rarity==='超レア')name='極光の'+name;else if(rarity==='レア')name='煌めく'+name;else if(rarity==='変異')name='変異型'+name;
  let colors=['#f4b86c','#ed795e','#7fd7d0','#76c978','#9aabcc','#7772ba','#5bbce9','#f1ce62','#94a9b9','#70c66b','#b48be8'];let accents=['#fff0a8','#ffcf76','#e0fff7','#d8ff9b','#e3efff','#d1a5ff','#b5f8ff','#fff8c2','#7df5d6','#f4d76e','#ffc6f5'];let idx=KINDS.indexOf(kind);
  if(rarity==='幻'&&state.found.filter(x=>x.kind===kind&&x.rarity==='幻').length>=3)rarity='超レア';
- let m={id:state.nextId++,name,kind,color:colors[idx],accent:accents[idx],rarity,motif:motifs[kind],desc:''};m.desc=lore(m);let duplicate=state.found.some(x=>x.name===m.name&&x.kind===m.kind&&x.rarity===m.rarity);if(!duplicate)state.found.push(m);
+ let m={id:state.nextId++,name,kind,color:colors[idx],accent:accents[idx],rarity,motif:motifs[kind],traits:inheritedTraits(a,b,h),desc:''};m.desc=lore(m);let duplicate=state.found.some(x=>x.name===m.name&&x.kind===m.kind&&x.rarity===m.rarity);if(!duplicate)state.found.push(m);
  state.logs.push({time:new Date().toLocaleString('ja-JP'),text:`${a.name} × ${b.name} → ${m.name}（${m.kind}・${m.rarity}）${duplicate?'／既知の特徴を再確認':''}`});if(state.logs.length>150)state.logs=state.logs.slice(-150);
  render();showResult(m,!duplicate);save();
  if(state.breedCount%10===0){$('milestoneTitle').textContent=`🎉 配合 ${state.breedCount} 回達成！`;$('milestoneText').textContent='研究の節目を記録しました。次の10回で新たなマイルストーンへ！';$('milestone').classList.add('show');$('milestone').scrollIntoView({behavior:'smooth',block:'center'})}
@@ -154,7 +267,7 @@ document.querySelectorAll('nav button').forEach(btn=>btn.addEventListener('click
 $('kindA').addEventListener('change',drawParents);$('kindB').addEventListener('change',drawParents);
 $('kindMode').addEventListener('click',()=>{selectionMode='kind';$('kindMode').classList.add('selected');$('randomMode').classList.remove('selected');drawParents()});
 $('randomMode').addEventListener('click',()=>{selectionMode='random';$('randomMode').classList.add('selected');$('kindMode').classList.remove('selected');drawParents()});
-$('breedBtn').addEventListener('click',breed);$('autoBreedBtn').addEventListener('click',()=>{selectionMode='random';$('randomMode').classList.add('selected');$('kindMode').classList.remove('selected');breed()});
+$('breedBtn').addEventListener('click',breed);$('shareBuddyBtn').addEventListener('click',shareBuddy);$('copyBuddyBtn').addEventListener('click',copyBuddy);$('autoBreedBtn').addEventListener('click',()=>{selectionMode='random';$('randomMode').classList.add('selected');$('kindMode').classList.remove('selected');breed()});
 $('clearLog').addEventListener('click',()=>{state.logs=[];save();render()});
 $('resetBtn').addEventListener('click',()=>{if(confirm('配合記録・発見個体・ログをすべて初期化しますか？')){localStorage.removeItem(STORE);state={breedCount:0,found:STARTERS.map(x=>({...x})),logs:[],nextId:11};$('milestone').classList.remove('show');$('result').classList.remove('show');render();save()}});
 load();render();
