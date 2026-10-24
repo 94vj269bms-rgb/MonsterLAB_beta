@@ -28,8 +28,8 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
 .mode-row button{padding:10px 6px;font-size:12px}.mode-row-three{grid-template-columns:repeat(3,minmax(0,1fr))}.mode-row-three button{min-height:48px;line-height:1.25;white-space:normal}
 .mode-row button.selected{border-color:var(--mint);background:#25475a}
-.book-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.book-filters label{font-size:12px;color:var(--muted);min-width:0}.book-filters .kind-select{margin-top:5px}.kind-select{width:100%;background:#1b2440;color:white;border:1px solid #465477;border-radius:9px;padding:9px;font-size:13px;margin-top:5px}
-.reset-zone{margin-top:20px;border-top:1px solid #303958;padding-top:12px;color:var(--muted);font-size:12px}
+.book-filters{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:8px;margin:12px 0}.book-filters label{font-size:12px;color:var(--muted);min-width:0}.book-filters .kind-select{margin-top:5px}.kind-select{width:100%;background:#1b2440;color:white;border:1px solid #465477;border-radius:9px;padding:9px;font-size:13px;margin-top:5px}
+.sort-label{grid-column:1/-1}.sort-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:5px}.sort-controls .sort-btn{font-size:12px;padding:9px 5px;min-width:0}.sort-controls .sort-btn.selected{border-color:var(--mint);background:#25475a;color:#d9fff4}@media(min-width:600px){.sort-controls{grid-template-columns:repeat(4,minmax(0,1fr))}}.reset-zone{margin-top:20px;border-top:1px solid #303958;padding-top:12px;color:var(--muted);font-size:12px}
 .reset-zone summary{cursor:pointer;padding:8px 0}.reset-zone p{margin:6px 0}.reset-btn{background:#38202b;border-color:#764050;color:#ffdce2}
 #breedBtn{min-height:48px;font-size:15px}.breed-actions{scroll-margin-top:12px}
 .parent-summary{font-size:11px;color:var(--mint);margin-top:5px}
@@ -78,14 +78,14 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 <div class="breed-actions"><button class="btn primary" id="breedBtn">✦ 配合する</button></div>
 <details class="reset-zone"><summary>⚙️ データ管理</summary><p>セーブデータはこのブラウザ内に保存されます。端末変更やブラウザ削除に備えてバックアップしてください。</p><div class="breed-actions"><button class="btn" id="exportBtn" type="button">💾 データを書き出す</button><button class="btn" id="importBtn" type="button">📂 データを復元</button></div><input id="importFile" type="file" accept="application/json,.json" hidden><button class="btn reset-btn" id="resetBtn">データを初期化する</button></details><div class="note">親はレアリティ → 種族 → 個体名の順で直接選べます。ランダム配合なら親選びもワンタップ！</div></div>
 <div id="milestone" class="milestone"><strong id="milestoneTitle">研究マイルストーン達成！</strong><p id="milestoneText">研究成果を記録しました。</p></div>
-<div id="result" class="panel result"><div class="tag">NEW DISCOVERY</div><canvas id="resultArt" width="256" height="256"></canvas><h3 id="resultName"></h3><div id="resultMeta"></div><p class="lore" id="resultLore"></p><div class="breed-actions"><button class="btn primary" id="shareBuddyBtn">𝕏 Xに画像付きで投稿</button><button class="btn" id="copyBuddyBtn">🔗 投稿文をコピー</button></div><p class="note">画像と投稿文をXの共有画面へ渡します。端末が画像共有に対応しない場合は、画像を保存して投稿文をコピーし、Xで画像を添付できます。</p></div>
+<div id="result" class="panel result"><div class="tag">NEW DISCOVERY</div><canvas id="resultArt" width="256" height="256"></canvas><h3 id="resultName"></h3><div id="resultMeta"></div><p class="lore" id="resultLore"></p><div class="breed-actions"><button class="btn primary" id="shareBuddyBtn">📣 相棒をSNSでシェア</button><button class="btn" id="copyBuddyBtn">🔗 投稿文をコピー</button></div><p class="note">共有メニューに投稿文を渡すよ。SNSアプリ内への自動投稿・自動貼り付けは各SNSの制限でできない場合があるよ。</p></div>
 <div class="panel"><h2>🌱 初期研究個体</h2><p class="sub">7種族・7体の初期研究個体。未知の種族や特徴は配合で発見しよう。</p><div class="grid" id="starterGrid"></div></div>
 </section>
 <section id="book" class="section"><div class="panel"><h2>📖 発見図鑑</h2><p class="sub">あなたが生み出した相棒たちを記録。発見した姿は、あなたの研究成果になる。</p>
 <div class="book-filters">
 <label>レアリティ<select id="bookRarity" class="kind-select"><option value="all">すべてのレアリティ</option></select></label>
 <label>種族<select id="bookKind" class="kind-select"><option value="all">すべての種族</option></select></label>
-<label>並び順<select id="bookSort" class="kind-select"><option value="newest">新しく発見した順</option><option value="oldest">古く発見した順</option><option value="name">名前順</option><option value="rarity">レアリティ順</option><option value="kind">種族順</option></select></label>
+<label class="sort-label">並び順<div id="bookSort" class="sort-controls" role="group" aria-label="図鑑の並び順"><button type="button" class="btn sort-btn selected" data-sort="discovery" aria-pressed="true">発見順 ↓</button><button type="button" class="btn sort-btn" data-sort="name" aria-pressed="false">名前順 ↑</button><button type="button" class="btn sort-btn" data-sort="rarity" aria-pressed="false">レアリティ順 ↑</button><button type="button" class="btn sort-btn" data-sort="kind" aria-pressed="false">種族順 ↑</button></div></label>
 </div><p id="bookCount" class="note"></p><div class="grid" id="bookGrid"></div></div></section>
 <section id="logs" class="section"><div class="panel"><h2>🔎 発見ログ</h2><p class="sub">配合の軌跡と研究成果。</p><ul class="log" id="logList"></ul><button class="btn" id="clearLog" style="width:100%;margin-top:10px">ログだけ消去</button></div></section>
 <div class="foot">MONSTER LAB · あなただけの魔導生物研究所</div>
@@ -112,7 +112,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 </div>
 <script>
 (()=>{
-const KINDS=['獣','竜','精霊','植物','鉱石','影','水棲','鳥','機械','蟲','幻獣'];
+const KINDS=['獣','植物','鉱石','鳥','機械','蟲','水棲','竜','精霊','影','幻獣'];
 const STARTERS=[
 {id:'s0',name:'ルミポン',kind:'獣',color:'#f4b86c',accent:'#fff0a8',rarity:'ノーマル',motif:'beast',desc:'好奇心旺盛な小獣。光る木の実を巣に集める。'},
 {id:'s1',name:'ネムリーフ',kind:'植物',color:'#76c978',accent:'#d8ff9b',rarity:'ノーマル',motif:'plant',desc:'葉脈に月光をためる植物生命。夜になると淡く発光する。'},
@@ -300,20 +300,37 @@ function initBookFilters(){
  r.value=[...r.options].some(o=>o.value===oldR)?oldR:'all';
  k.value=[...k.options].some(o=>o.value===oldK)?oldK:'all';
 }
+let bookSortMode='discovery';
+let bookSortDescending=true;
 function sortedBook(){
  let arr=state.found.slice();
- const r=$('bookRarity').value,k=$('bookKind').value,s=$('bookSort').value;
+ const r=$('bookRarity').value,k=$('bookKind').value;
  if(r!=='all')arr=arr.filter(m=>m.rarity===r);
  if(k!=='all')arr=arr.filter(m=>m.kind===k);
  const rarityRank=m=>{const i=RARITY_ORDER.indexOf(m.rarity);return i<0?999:i};
- if(s==='newest')arr.sort((a,b)=>Number(b.id)-Number(a.id));
- else if(s==='oldest')arr.sort((a,b)=>Number(a.id)-Number(b.id));
- else if(s==='name')arr.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
- else if(s==='rarity')arr.sort((a,b)=>rarityRank(a)-rarityRank(b)||String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
- else if(s==='kind')arr.sort((a,b)=>KINDS.indexOf(a.kind)-KINDS.indexOf(b.kind)||String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
+ const discoveryRank=new Map(state.found.map((m,i)=>[String(m.id),i]));
+ const cmp=(a,b)=>{
+   let n=0;
+   if(bookSortMode==='discovery') n=(discoveryRank.get(String(a.id))??0)-(discoveryRank.get(String(b.id))??0);
+   else if(bookSortMode==='name') n=String(a.name||'').localeCompare(String(b.name||''),'ja');
+   else if(bookSortMode==='rarity') n=rarityRank(a)-rarityRank(b);
+   else if(bookSortMode==='kind') n=KINDS.indexOf(a.kind)-KINDS.indexOf(b.kind);
+   if(n===0) n=String(a.name||'').localeCompare(String(b.name||''),'ja') || String(a.id).localeCompare(String(b.id),'ja',{numeric:true});
+   return bookSortDescending ? -n : n;
+ };
+ arr.sort(cmp);
  return arr;
 }
-function renderBook(){initBookFilters();const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}
+function updateBookSortButtons(){
+ document.querySelectorAll('#bookSort [data-sort]').forEach(btn=>{
+   const active=btn.dataset.sort===bookSortMode;
+   btn.classList.toggle('selected',active);
+   btn.setAttribute('aria-pressed',String(active));
+   const labels={discovery:'発見順',name:'名前順',rarity:'レアリティ順',kind:'種族順'};
+   btn.textContent=labels[btn.dataset.sort]+' '+(active?(bookSortDescending?'↓':'↑'):(btn.dataset.sort==='discovery'?'↓':'↑'));
+ });
+}
+function renderBook(){initBookFilters();updateBookSortButtons();const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}
 async function shareMonster(m){
  const text=shareText(m);
  if(navigator.share){try{await navigator.share({title:'MONSTER LAB｜相棒発見！',text,url:'https://94vj269bms-rgb.github.io/MonsterLAB_beta/'});return}catch(e){if(e&&e.name==='AbortError')return}}
@@ -322,7 +339,7 @@ async function shareMonster(m){
 async function copyMonster(m){const text=shareText(m);try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！')}catch(e){prompt('投稿文をコピーしてね',text)}}
 function render(){ $('breedCount').textContent=state.breedCount;$('foundCount').textContent=state.found.length;$('rareCount').textContent=state.found.filter(m=>m.rarity!=='ノーマル').length;
  $('starterGrid').replaceChildren(...STARTERS.map(createStarterCard));renderBook();fillSelects();
- $('logList').replaceChildren();if(!state.logs.length){let li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。最初の配合を実行しよう！';$('logList').appendChild(li)}else state.logs.slice().reverse().forEach(x=>{let li=document.createElement('li'),time=document.createElement('time');time.textContent=x.time;if(x.type==='discovery-modal'){li.classList.add('modal-discovery');let badge=document.createElement('span');badge.className='log-badge';badge.textContent='発見モーダル';li.append(time,badge,document.createElement('br'),document.createTextNode(x.text))}else li.append(time,document.createTextNode(x.text));$('logList').appendChild(li)});
+ $('logList').replaceChildren();if(!state.logs.length){let li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。最初の配合を実行しよう！';$('logList').appendChild(li)}else state.logs.slice().reverse().forEach(x=>{let li=document.createElement('li'),time=document.createElement('time');time.textContent=x.time;if(x.type==='discovery-modal'){li.classList.add('modal-discovery');let badge=document.createElement('span');badge.className='log-badge';badge.textContent='初発見';li.append(time,badge,document.createElement('br'),document.createTextNode(x.text))}else li.append(time,document.createTextNode(x.text));$('logList').appendChild(li)});
 }
 
 function inheritedTraits(a,b,h){
@@ -508,44 +525,12 @@ function shareText(m){
  const url='https://94vj269bms-rgb.github.io/MonsterLAB_beta/';
  return `🎉 ${state.breedCount}回目の配合で出会いました！\n相棒：${m.name}\n種族：${m.kind}種\nレアリティ：${m.rarity}\n#MONSTERLAB #相棒モンスター\n${url}`;
 }
-async function makeShareCard(m){
- const W=1200,H=675,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
- const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#10172d');g.addColorStop(.55,'#20264a');g.addColorStop(1,'#321d4a');x.fillStyle=g;x.fillRect(0,0,W,H);
- x.strokeStyle='#7be3d2';x.lineWidth=5;x.strokeRect(18,18,W-36,H-36);
- x.fillStyle='#80f0ce';x.font='bold 24px sans-serif';x.fillText('MONSTER LAB  /  PARTNER DISCOVERY',58,70);
- x.fillStyle='#ffd778';x.font='bold 38px sans-serif';x.fillText(`🎉 ${state.breedCount}回目の配合で出会いました！`,58,132);
- // Draw the actual current sprite into the share card.
- const art=makeArtElement(m);let src=art;
- if(art.tagName==='IMG'){
-   if(!art.complete || !art.naturalWidth) await new Promise((resolve,reject)=>{art.onload=resolve;art.onerror=reject});
- }
- x.fillStyle='#11182e';x.fillRect(55,175,420,420);x.strokeStyle='#53648b';x.lineWidth=3;x.strokeRect(55,175,420,420);
- x.imageSmoothingEnabled=false;x.drawImage(src,75,195,380,380);
- const lines=[['相棒',m.name||'名前未設定'],['種族',`${m.kind}種`],['レアリティ',m.rarity]];
- let yy=270;for(const [label,value] of lines){x.fillStyle='#aab5d4';x.font='bold 26px sans-serif';x.fillText(label,535,yy);x.fillStyle='#ffffff';x.font='bold 40px sans-serif';x.fillText(value,690,yy);yy+=100;}
- x.fillStyle='#d7a9ff';x.font='bold 25px sans-serif';x.fillText('#MONSTERLAB  #相棒モンスター',535,560);
- x.fillStyle='#b8c5e8';x.font='20px sans-serif';x.fillText('94vj269bms-rgb.github.io/MonsterLAB_beta/',535,610);
- const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw new Error('画像を作成できませんでした');
- return new File([blob],`MONSTER_LAB_${String(m.name||'partner').replace(/[^\wぁ-んァ-ヶ一-龠ー]/g,'_')}.png`,{type:'image/png'});
-}
-function downloadShareImage(file){const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000)}
 async function shareBuddy(){
  if(!currentResult)return;
- const m=currentResult,text=shareText(m),xUrl='https://twitter.com/intent/tweet?text='+encodeURIComponent(text);
- try{
-   const file=await makeShareCard(m),data={title:'MONSTER LAB｜相棒発見！',text,files:[file]};
-   if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-     try{await navigator.share(data);return;}catch(e){if(e&&e.name==='AbortError')return;}
-   }
-   downloadShareImage(file);
-   try{await navigator.clipboard.writeText(text);}catch(e){}
-   alert('相棒画像を保存し、投稿文をコピーしました。次に開くXの投稿画面で、本文を貼り付けて保存した画像を添付してください。画像付き投稿にするには、X側で画像添付が必要です。');
-   window.open(xUrl,'_blank','noopener');
- }catch(e){
-   try{await navigator.clipboard.writeText(text);}catch(err){}
-   alert('画像の自動共有に対応していないため、Xの投稿画面を開きます。投稿文を貼り付け、必要なら図鑑から画像を保存して添付してください。');
-   window.open(xUrl,'_blank','noopener');
- }
+ const text=shareText(currentResult);
+ if(navigator.share){try{await navigator.share({title:'MONSTER LAB｜相棒発見！',text,url:'https://94vj269bms-rgb.github.io/MonsterLAB_beta/'});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+ try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！SNSに貼り付けてね。');}
+ catch(e){prompt('この投稿文をコピーしてSNSに貼り付けてね',text);}
 }
 async function copyBuddy(){if(!currentResult)return;const text=shareText(currentResult);try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！');}catch(e){prompt('投稿文をコピーしてね',text);}}
 function showResult(m,isNew){
@@ -616,15 +601,16 @@ function weightedSpecies(a,b,rollSeed){
 function breed(){if(selectionMode==='randomEach'){lockedParents=[randomParent(),randomParent()];drawParents()}let [a,b]=chosenParents();state.breedCount++;let seed=`${a.id}|${b.id}|${state.breedCount}`,h=hash(seed);
  let kind=weightedSpecies(a,b,seed),rarity=rarityFor(seed,state.breedCount,a,b);let motifs={ '獣':'beast','竜':'dragon','精霊':'spirit','植物':'plant','鉱石':'ore','影':'shadow','水棲':'water','鳥':'bird','機械':'machine','幻獣':'mythic','蟲':'insect'};
  const names={'獣':['モフル','ルナポン','ケモリ','フワット'],'竜':['アカツノ','ヒバナドレイク','リュミドラ','コガネ竜'],'精霊':['シズクル','ミラージュ','セレネ','ホシノコ'],'植物':['ハナネム','モリコ','ツタマル','リーフィ'],'鉱石':['クリスタ','ガンセキン','ルビーゴーレム','キラライト'],'影':['ヨルル','カゲボウシ','ナイトミィ','クロノワ'],'水棲':['アワポン','ミズリィ','シオマル','ナミノコ'],'鳥':['ハネピィ','ソラリス','ツバサクン','ピヨルン'],'機械':['ギアポン','ボルトル','クロックン','メカミィ'],'幻獣':['ユメノワ','ルミナイト','ムーンホエル','セイレーン'],'蟲':['コガネバグ','ルビービートル','ミツバチュラ','カゲロウムシ']};
- let name=names[kind][h%4];if(rarity==='幻')name=['星界の'+name,'夢幻の'+name,'神話級'+name][(h>>4)%3];else if(rarity==='超レア')name='極光の'+name;else if(rarity==='レア')name='煌めく'+name;else if(rarity==='変異')name='変異型'+name;
- let colors=['#f4b86c','#ed795e','#7fd7d0','#76c978','#9aabcc','#7772ba','#5bbce9','#f1ce62','#94a9b9','#70c66b','#b48be8'];let accents=['#fff0a8','#ffcf76','#e0fff7','#d8ff9b','#e3efff','#d1a5ff','#b5f8ff','#fff8c2','#7df5d6','#f4d76e','#ffc6f5'];let idx=KINDS.indexOf(kind);
  if(rarity==='幻'&&state.found.filter(x=>x.kind===kind&&x.rarity==='幻').length>=3)rarity='超レア';
+ const baseNames=names[kind]||['ミステリィ','ノクス','ルクス','エニグマ'];
+ let name=baseNames[h%baseNames.length];if(rarity==='幻')name=['星界の'+name,'夢幻の'+name,'神話級'+name][(h>>4)%3];else if(rarity==='超レア')name='極光の'+name;else if(rarity==='レア')name='煌めく'+name;else if(rarity==='変異')name='変異型'+name;
+ let colors=['#f4b86c','#ed795e','#7fd7d0','#76c978','#9aabcc','#7772ba','#5bbce9','#f1ce62','#94a9b9','#70c66b','#b48be8'];let accents=['#fff0a8','#ffcf76','#e0fff7','#d8ff9b','#e3efff','#d1a5ff','#b5f8ff','#fff8c2','#7df5d6','#f4d76e','#ffc6f5'];let idx=KINDS.indexOf(kind);
  const knownKinds=new Set(state.found.map(x=>x.kind));
  const knownRarities=new Set(state.found.map(x=>x.rarity));
  let m={id:state.nextId++,name,kind,color:colors[idx],accent:accents[idx],rarity,motif:motifs[kind],traits:inheritedTraits(a,b,h),desc:''};m.desc=lore(m);
  let duplicate=state.found.some(x=>x.name===m.name&&x.kind===m.kind&&x.rarity===m.rarity);
- if(!knownKinds.has(m.kind)){const text=`${m.name}の誕生により、新しい種族を発見しました。`;discoveryQueue.push({icon:'🧬',title:`初めての${m.kind}種！`,text,logText:`種族発見：${text}`});}
- if(!knownRarities.has(m.rarity)){const text=`${m.name}が初めての${m.rarity}個体です。`;discoveryQueue.push({icon:'✦',title:`初めての${m.rarity}！`,text,logText:`レアリティ発見：${text}`});}
+ if(!knownKinds.has(m.kind)){const text=`${m.name}の誕生により、新しい種族を発見しました。`;discoveryQueue.push({icon:'🧬',title:'新種族発見！',text,logText:`種族発見：${text}`});}
+ if(!knownRarities.has(m.rarity)){const text=`${m.name}が初めての${m.rarity}個体です。`;discoveryQueue.push({icon:'✦',title:'新レアリティ！',text,logText:`レアリティ発見：${text}`});}
  if(!duplicate)state.found.push(m);
  state.logs.push({time:new Date().toLocaleString('ja-JP'),text:`${a.name} × ${b.name} → ${m.name}（${m.kind}・${m.rarity}）${duplicate?'／既知の特徴を再確認':''}`});if(state.logs.length>150)state.logs=state.logs.slice(-150);
  render();showResult(m,!duplicate);save();
@@ -642,7 +628,15 @@ document.querySelectorAll('nav button').forEach(btn=>btn.addEventListener('click
  $('kind'+side).addEventListener('change',()=>{fillOneParent(side,false);drawParents()});
  $('individual'+side).addEventListener('change',drawParents);
 });
-['bookRarity','bookKind','bookSort'].forEach(id=>$(id).addEventListener('change',()=>{const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}));
+['bookRarity','bookKind'].forEach(id=>$(id).addEventListener('change',()=>{const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}));
+$('bookSort').querySelectorAll('[data-sort]').forEach(btn=>btn.addEventListener('click',()=>{
+ const mode=btn.dataset.sort;
+ if(bookSortMode===mode)bookSortDescending=!bookSortDescending;
+ else {bookSortMode=mode;bookSortDescending=(mode==='discovery');}
+ updateBookSortButtons();
+ const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));
+ $('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）';
+}));
 $('kindMode').addEventListener('click',()=>setSelectionMode('direct'));
 $('lockedRandomMode').addEventListener('click',()=>setSelectionMode('lockedRandom'));
 $('randomEachMode').addEventListener('click',()=>setSelectionMode('randomEach'));
