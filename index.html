@@ -29,7 +29,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 .mode-row button{padding:10px 6px;font-size:12px}.mode-row-three{grid-template-columns:repeat(3,minmax(0,1fr))}.mode-row-three button{min-height:48px;line-height:1.25;white-space:normal}
 .mode-row button.selected{border-color:var(--mint);background:#25475a}
 .book-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.book-filters label{font-size:12px;color:var(--muted);min-width:0}.book-filters .kind-select{margin-top:5px}.kind-select{width:100%;background:#1b2440;color:white;border:1px solid #465477;border-radius:9px;padding:9px;font-size:13px;margin-top:5px}
-.reset-zone{margin-top:20px;border-top:1px solid #303958;padding-top:12px;color:var(--muted);font-size:12px}
+.sort-label{grid-column:1/-1}.sort-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:5px}.sort-controls .sort-btn{font-size:12px;padding:9px 5px;min-width:0}.sort-controls .sort-btn.selected{border-color:var(--mint);background:#25475a;color:#d9fff4}@media(min-width:600px){.sort-controls{grid-template-columns:repeat(4,minmax(0,1fr))}}.reset-zone{margin-top:20px;border-top:1px solid #303958;padding-top:12px;color:var(--muted);font-size:12px}
 .reset-zone summary{cursor:pointer;padding:8px 0}.reset-zone p{margin:6px 0}.reset-btn{background:#38202b;border-color:#764050;color:#ffdce2}
 #breedBtn{min-height:48px;font-size:15px}.breed-actions{scroll-margin-top:12px}
 .parent-summary{font-size:11px;color:var(--mint);margin-top:5px}
@@ -85,7 +85,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 <div class="book-filters">
 <label>レアリティ<select id="bookRarity" class="kind-select"><option value="all">すべてのレアリティ</option></select></label>
 <label>種族<select id="bookKind" class="kind-select"><option value="all">すべての種族</option></select></label>
-<label>並び順<select id="bookSort" class="kind-select"><option value="newest">新しく発見した順</option><option value="oldest">古く発見した順</option><option value="name">名前順</option><option value="rarity">レアリティ順</option><option value="kind">種族順</option></select></label>
+<label class="sort-label">並び順<div id="bookSort" class="sort-controls" role="group" aria-label="図鑑の並び順"><button type="button" class="btn sort-btn selected" data-sort="discovery" aria-pressed="true">発見順 ↓</button><button type="button" class="btn sort-btn" data-sort="name" aria-pressed="false">名前順 ↑</button><button type="button" class="btn sort-btn" data-sort="rarity" aria-pressed="false">レアリティ順 ↑</button><button type="button" class="btn sort-btn" data-sort="kind" aria-pressed="false">種族順 ↑</button></div></label>
 </div><p id="bookCount" class="note"></p><div class="grid" id="bookGrid"></div></div></section>
 <section id="logs" class="section"><div class="panel"><h2>🔎 発見ログ</h2><p class="sub">配合の軌跡と研究成果。</p><ul class="log" id="logList"></ul><button class="btn" id="clearLog" style="width:100%;margin-top:10px">ログだけ消去</button></div></section>
 <div class="foot">MONSTER LAB · あなただけの魔導生物研究所</div>
@@ -112,7 +112,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 </div>
 <script>
 (()=>{
-const KINDS=['獣','竜','精霊','植物','鉱石','影','水棲','鳥','機械','蟲','幻獣'];
+const KINDS=['獣','植物','鉱石','鳥','機械','蟲','水棲','竜','精霊','影','幻獣'];
 const STARTERS=[
 {id:'s0',name:'ルミポン',kind:'獣',color:'#f4b86c',accent:'#fff0a8',rarity:'ノーマル',motif:'beast',desc:'好奇心旺盛な小獣。光る木の実を巣に集める。'},
 {id:'s1',name:'ネムリーフ',kind:'植物',color:'#76c978',accent:'#d8ff9b',rarity:'ノーマル',motif:'plant',desc:'葉脈に月光をためる植物生命。夜になると淡く発光する。'},
@@ -300,20 +300,37 @@ function initBookFilters(){
  r.value=[...r.options].some(o=>o.value===oldR)?oldR:'all';
  k.value=[...k.options].some(o=>o.value===oldK)?oldK:'all';
 }
+let bookSortMode='discovery';
+let bookSortDescending=true;
 function sortedBook(){
  let arr=state.found.slice();
- const r=$('bookRarity').value,k=$('bookKind').value,s=$('bookSort').value;
+ const r=$('bookRarity').value,k=$('bookKind').value;
  if(r!=='all')arr=arr.filter(m=>m.rarity===r);
  if(k!=='all')arr=arr.filter(m=>m.kind===k);
  const rarityRank=m=>{const i=RARITY_ORDER.indexOf(m.rarity);return i<0?999:i};
- if(s==='newest')arr.sort((a,b)=>Number(b.id)-Number(a.id));
- else if(s==='oldest')arr.sort((a,b)=>Number(a.id)-Number(b.id));
- else if(s==='name')arr.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
- else if(s==='rarity')arr.sort((a,b)=>rarityRank(a)-rarityRank(b)||String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
- else if(s==='kind')arr.sort((a,b)=>KINDS.indexOf(a.kind)-KINDS.indexOf(b.kind)||String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
+ const discoveryRank=new Map(state.found.map((m,i)=>[String(m.id),i]));
+ const cmp=(a,b)=>{
+   let n=0;
+   if(bookSortMode==='discovery') n=(discoveryRank.get(String(a.id))??0)-(discoveryRank.get(String(b.id))??0);
+   else if(bookSortMode==='name') n=String(a.name||'').localeCompare(String(b.name||''),'ja');
+   else if(bookSortMode==='rarity') n=rarityRank(a)-rarityRank(b);
+   else if(bookSortMode==='kind') n=KINDS.indexOf(a.kind)-KINDS.indexOf(b.kind);
+   if(n===0) n=String(a.name||'').localeCompare(String(b.name||''),'ja') || String(a.id).localeCompare(String(b.id),'ja',{numeric:true});
+   return bookSortDescending ? -n : n;
+ };
+ arr.sort(cmp);
  return arr;
 }
-function renderBook(){initBookFilters();const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}
+function updateBookSortButtons(){
+ document.querySelectorAll('#bookSort [data-sort]').forEach(btn=>{
+   const active=btn.dataset.sort===bookSortMode;
+   btn.classList.toggle('selected',active);
+   btn.setAttribute('aria-pressed',String(active));
+   const labels={discovery:'発見順',name:'名前順',rarity:'レアリティ順',kind:'種族順'};
+   btn.textContent=labels[btn.dataset.sort]+' '+(active?(bookSortDescending?'↓':'↑'):(btn.dataset.sort==='discovery'?'↓':'↑'));
+ });
+}
+function renderBook(){initBookFilters();updateBookSortButtons();const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}
 async function shareMonster(m){
  const text=shareText(m);
  if(navigator.share){try{await navigator.share({title:'MONSTER LAB｜相棒発見！',text,url:'https://94vj269bms-rgb.github.io/MonsterLAB_beta/'});return}catch(e){if(e&&e.name==='AbortError')return}}
@@ -322,7 +339,7 @@ async function shareMonster(m){
 async function copyMonster(m){const text=shareText(m);try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！')}catch(e){prompt('投稿文をコピーしてね',text)}}
 function render(){ $('breedCount').textContent=state.breedCount;$('foundCount').textContent=state.found.length;$('rareCount').textContent=state.found.filter(m=>m.rarity!=='ノーマル').length;
  $('starterGrid').replaceChildren(...STARTERS.map(createStarterCard));renderBook();fillSelects();
- $('logList').replaceChildren();if(!state.logs.length){let li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。最初の配合を実行しよう！';$('logList').appendChild(li)}else state.logs.slice().reverse().forEach(x=>{let li=document.createElement('li'),time=document.createElement('time');time.textContent=x.time;if(x.type==='discovery-modal'){li.classList.add('modal-discovery');let badge=document.createElement('span');badge.className='log-badge';badge.textContent='発見モーダル';li.append(time,badge,document.createElement('br'),document.createTextNode(x.text))}else li.append(time,document.createTextNode(x.text));$('logList').appendChild(li)});
+ $('logList').replaceChildren();if(!state.logs.length){let li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。最初の配合を実行しよう！';$('logList').appendChild(li)}else state.logs.slice().reverse().forEach(x=>{let li=document.createElement('li'),time=document.createElement('time');time.textContent=x.time;if(x.type==='discovery-modal'){li.classList.add('modal-discovery');let badge=document.createElement('span');badge.className='log-badge';badge.textContent='初発見';li.append(time,badge,document.createElement('br'),document.createTextNode(x.text))}else li.append(time,document.createTextNode(x.text));$('logList').appendChild(li)});
 }
 
 function inheritedTraits(a,b,h){
@@ -584,9 +601,10 @@ function weightedSpecies(a,b,rollSeed){
 function breed(){if(selectionMode==='randomEach'){lockedParents=[randomParent(),randomParent()];drawParents()}let [a,b]=chosenParents();state.breedCount++;let seed=`${a.id}|${b.id}|${state.breedCount}`,h=hash(seed);
  let kind=weightedSpecies(a,b,seed),rarity=rarityFor(seed,state.breedCount,a,b);let motifs={ '獣':'beast','竜':'dragon','精霊':'spirit','植物':'plant','鉱石':'ore','影':'shadow','水棲':'water','鳥':'bird','機械':'machine','幻獣':'mythic','蟲':'insect'};
  const names={'獣':['モフル','ルナポン','ケモリ','フワット'],'竜':['アカツノ','ヒバナドレイク','リュミドラ','コガネ竜'],'精霊':['シズクル','ミラージュ','セレネ','ホシノコ'],'植物':['ハナネム','モリコ','ツタマル','リーフィ'],'鉱石':['クリスタ','ガンセキン','ルビーゴーレム','キラライト'],'影':['ヨルル','カゲボウシ','ナイトミィ','クロノワ'],'水棲':['アワポン','ミズリィ','シオマル','ナミノコ'],'鳥':['ハネピィ','ソラリス','ツバサクン','ピヨルン'],'機械':['ギアポン','ボルトル','クロックン','メカミィ'],'幻獣':['ユメノワ','ルミナイト','ムーンホエル','セイレーン'],'蟲':['コガネバグ','ルビービートル','ミツバチュラ','カゲロウムシ']};
- let name=names[kind][h%4];if(rarity==='幻')name=['星界の'+name,'夢幻の'+name,'神話級'+name][(h>>4)%3];else if(rarity==='超レア')name='極光の'+name;else if(rarity==='レア')name='煌めく'+name;else if(rarity==='変異')name='変異型'+name;
- let colors=['#f4b86c','#ed795e','#7fd7d0','#76c978','#9aabcc','#7772ba','#5bbce9','#f1ce62','#94a9b9','#70c66b','#b48be8'];let accents=['#fff0a8','#ffcf76','#e0fff7','#d8ff9b','#e3efff','#d1a5ff','#b5f8ff','#fff8c2','#7df5d6','#f4d76e','#ffc6f5'];let idx=KINDS.indexOf(kind);
  if(rarity==='幻'&&state.found.filter(x=>x.kind===kind&&x.rarity==='幻').length>=3)rarity='超レア';
+ const baseNames=names[kind]||['ミステリィ','ノクス','ルクス','エニグマ'];
+ let name=baseNames[h%baseNames.length];if(rarity==='幻')name=['星界の'+name,'夢幻の'+name,'神話級'+name][(h>>4)%3];else if(rarity==='超レア')name='極光の'+name;else if(rarity==='レア')name='煌めく'+name;else if(rarity==='変異')name='変異型'+name;
+ let colors=['#f4b86c','#ed795e','#7fd7d0','#76c978','#9aabcc','#7772ba','#5bbce9','#f1ce62','#94a9b9','#70c66b','#b48be8'];let accents=['#fff0a8','#ffcf76','#e0fff7','#d8ff9b','#e3efff','#d1a5ff','#b5f8ff','#fff8c2','#7df5d6','#f4d76e','#ffc6f5'];let idx=KINDS.indexOf(kind);
  const knownKinds=new Set(state.found.map(x=>x.kind));
  const knownRarities=new Set(state.found.map(x=>x.rarity));
  let m={id:state.nextId++,name,kind,color:colors[idx],accent:accents[idx],rarity,motif:motifs[kind],traits:inheritedTraits(a,b,h),desc:''};m.desc=lore(m);
@@ -610,7 +628,15 @@ document.querySelectorAll('nav button').forEach(btn=>btn.addEventListener('click
  $('kind'+side).addEventListener('change',()=>{fillOneParent(side,false);drawParents()});
  $('individual'+side).addEventListener('change',drawParents);
 });
-['bookRarity','bookKind','bookSort'].forEach(id=>$(id).addEventListener('change',()=>{const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}));
+['bookRarity','bookKind'].forEach(id=>$(id).addEventListener('change',()=>{const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}));
+$('bookSort').querySelectorAll('[data-sort]').forEach(btn=>btn.addEventListener('click',()=>{
+ const mode=btn.dataset.sort;
+ if(bookSortMode===mode)bookSortDescending=!bookSortDescending;
+ else {bookSortMode=mode;bookSortDescending=(mode==='discovery');}
+ updateBookSortButtons();
+ const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));
+ $('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）';
+}));
 $('kindMode').addEventListener('click',()=>setSelectionMode('direct'));
 $('lockedRandomMode').addEventListener('click',()=>setSelectionMode('lockedRandom'));
 $('randomEachMode').addEventListener('click',()=>setSelectionMode('randomEach'));
