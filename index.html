@@ -113,6 +113,9 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 <script>
 (()=>{
 const KINDS=['獣','植物','鉱石','鳥','機械','蟲','水棲','竜','精霊','影','幻獣'];
+// Each species has 27 authored-rule base recipes (297 total). Variation is deterministic per individual.
+const BASE_RECIPE_COUNT_PER_KIND=27;
+const MONSTER_BASE_CATALOG=KINDS.flatMap((kind,kindIndex)=>Array.from({length:BASE_RECIPE_COUNT_PER_KIND},(_,i)=>({id:`${kindIndex+1}-${String(i+1).padStart(2,'0')}`,kind,variant:i+1,seed:hash(`${kind}:base:${i}`)})));
 const STARTERS=[
 {id:'s0',name:'ルミポン',kind:'獣',color:'#f4b86c',accent:'#fff0a8',rarity:'ノーマル',motif:'beast',desc:'好奇心旺盛な小獣。光る木の実を巣に集める。'},
 {id:'s1',name:'ネムリーフ',kind:'植物',color:'#76c978',accent:'#d8ff9b',rarity:'ノーマル',motif:'plant',desc:'葉脈に月光をためる植物生命。夜になると淡く発光する。'},
@@ -517,6 +520,34 @@ function drawGeneratedSprite(canvas,m){
    px(20,4,24,2,pal.ink);px(22,3,20,1,'#ff8fe0');px(20,4,2,6,'#ff8fe0');px(42,4,2,6,'#ff8fe0');
    px(29,2,7,3,'#fff0a8');px(30,3,5,1,light);
    px(5,27,4,3,'#c6a5ff');px(55,26,4,3,'#c6a5ff');
+ }
+ // 297 deterministic base plans: 11 species x 27 anatomy variants. The species silhouette
+ // grammar above remains the foundation; a stable seed selects controlled proportions,
+ // crest/ear/fin/tail profiles and surface motifs instead of unconstrained random pixels.
+ const baseIndex=hash(String(kind)+':base:'+String(seed%27))%27;
+ const shape=baseIndex%9, profile=Math.floor(baseIndex/9);
+ const bodyColor=pick([base,accent,light],baseIndex+seed);
+ if(shape===1){px(19,24,26,4,bodyColor);px(22,43,20,3,dark)}
+ else if(shape===2){px(22,19,5,5,bodyColor);px(37,19,5,5,bodyColor);px(24,44,5,5,dark);px(36,44,5,5,dark)}
+ else if(shape===3){px(15,29,5,8,bodyColor);px(44,28,5,8,bodyColor);px(19,41,4,4,accent);px(40,41,4,4,accent)}
+ else if(shape===4){px(24,15,5,5,bodyColor);px(35,15,5,5,bodyColor);px(27,12,3,5,accent);px(35,12,3,5,accent)}
+ else if(shape===5){px(17,25,5,5,bodyColor);px(42,25,5,5,bodyColor);px(14,31,5,4,accent);px(45,31,5,4,accent)}
+ else if(shape===6){px(20,21,5,4,bodyColor);px(39,21,5,4,bodyColor);px(23,46,5,3,accent);px(36,46,5,3,accent)}
+ else if(shape===7){px(27,17,10,3,accent);px(25,20,4,5,bodyColor);px(35,20,4,5,bodyColor)}
+ else if(shape===8){px(18,32,4,5,accent);px(42,32,4,5,accent);px(26,40,12,3,bodyColor)}
+ if(profile===1){px(10,22,7,3,bodyColor);px(47,22,7,3,bodyColor);px(13,25,4,4,accent);px(47,25,4,4,accent)}
+ if(profile===2){px(26,8,4,7,pal.ink);px(27,7,2,7,bodyColor);px(34,8,4,7,pal.ink);px(35,7,2,7,accent)}
+ // Relative-anchor parts: fixed motifs are selected and positioned at head/back/body/tail
+ // anchors. Their geometry stays recognizable while offsets and mirrored placement vary.
+ const partIndex=hash('parts:'+seed)%12;
+ const anchors=[{x:25,y:14},{x:36,y:14},{x:10,y:24},{x:45,y:24},{x:28,y:20},{x:39,y:35},{x:15,y:37},{x:46,y:38},{x:29,y:7},{x:34,y:7},{x:8,y:31},{x:52,y:31}];
+ for(let j=0;j<2+(seed%3);j++){
+   const a=anchors[(partIndex+j*3)%anchors.length], dx=((seed>>(j+2))%3)-1, dy=((seed>>(j+5))%3)-1;
+   const pc=pick([accent,light,base,'#8cecff','#c6a5ff'],seed+j*7);
+   if(j%4===0){px(a.x+dx,a.y+dy,3,6,pal.ink);px(a.x+1+dx,a.y+dy,1,5,pc)}
+   else if(j%4===1){px(a.x+dx,a.y+dy,5,3,pal.ink);px(a.x+1+dx,a.y+1+dy,3,1,pc)}
+   else if(j%4===2){px(a.x+dx,a.y+dy,3,3,pal.ink);px(a.x+1+dx,a.y+1+dy,1,1,pc)}
+   else{px(a.x+dx,a.y+dy,2,4,pal.ink);px(a.x+1+dx,a.y+1+dy,1,2,pc)}
  }
  ctx.restore();
 }
