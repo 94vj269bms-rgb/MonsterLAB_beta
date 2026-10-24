@@ -55,7 +55,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 .discovery-modal.open{display:flex}
 .discovery-dialog{position:relative;width:min(92vw,460px);background:linear-gradient(155deg,#202847,#101629);border:1px solid #d7b86a;border-radius:20px;padding:24px 20px 22px;box-shadow:0 24px 80px #000b;text-align:center}
 .discovery-close{position:absolute;top:9px;right:9px;width:40px;height:40px;border:1px solid #52618a;border-radius:50%;background:#252e4d;color:#fff;font-size:24px;line-height:1;cursor:pointer}
-.discovery-kicker{font-size:11px;letter-spacing:.18em;color:var(--mint)}.discovery-icon{font-size:42px;margin:12px 0 4px}.discovery-dialog h2{font-size:24px;color:var(--gold);margin:4px 42px 8px}.discovery-dialog p{font-size:13px;color:#d7def4;margin:0}
+.discovery-kicker{font-size:11px;letter-spacing:.18em;color:var(--mint)}.discovery-icon{font-size:42px;margin:12px 0 4px}.discovery-dialog h2{font-size:24px;color:var(--gold);margin:4px 42px 8px}.discovery-dialog p{font-size:13px;color:#d7def4;margin:0}.discovery-actions{margin-top:20px}.discovery-actions .btn{width:100%;border-color:#4c987f;background:linear-gradient(135deg,#183d3b,#1e5146);color:#baf8df;opacity:1;cursor:default}.log li.modal-discovery{border:1px solid #c99aff;background:linear-gradient(110deg,#302044,#1a2038);box-shadow:inset 3px 0 #d6a2ff}.log li.modal-discovery time{color:#d7a9ff}.log .log-badge{display:inline-block;margin-left:7px;padding:2px 6px;border-radius:5px;background:#6e3e91;color:#fff;font-size:10px;font-weight:800}
 .share-preview{margin:10px auto 0;max-width:480px;padding:14px;border:1px solid #465477;border-radius:14px;background:linear-gradient(145deg,#11182e,#252447);text-align:left}
 .share-preview strong{color:#ffd778}.share-preview .share-title{font-size:17px;font-weight:800;margin-bottom:6px}.share-preview p{font-size:12px;color:#d5def4;margin:4px 0}
 
@@ -107,6 +107,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
     <div class="discovery-icon" id="discoveryIcon">✦</div>
     <h2 id="discoveryTitle">初めての発見！</h2>
     <p id="discoveryText">新しい発見が図鑑に記録されました。</p>
+    <div class="discovery-actions"><button type="button" id="discoverySaved" class="btn" disabled>✓ 発見ログに保存済み</button></div>
   </div>
 </div>
 <script>
@@ -304,11 +305,12 @@ function sortedBook(){
  const r=$('bookRarity').value,k=$('bookKind').value,s=$('bookSort').value;
  if(r!=='all')arr=arr.filter(m=>m.rarity===r);
  if(k!=='all')arr=arr.filter(m=>m.kind===k);
+ const rarityRank=m=>{const i=RARITY_ORDER.indexOf(m.rarity);return i<0?999:i};
  if(s==='newest')arr.sort((a,b)=>Number(b.id)-Number(a.id));
  else if(s==='oldest')arr.sort((a,b)=>Number(a.id)-Number(b.id));
- else if(s==='name')arr.sort((a,b)=>a.name.localeCompare(b.name,'ja'));
- else if(s==='rarity')arr.sort((a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity)||a.name.localeCompare(b.name,'ja'));
- else if(s==='kind')arr.sort((a,b)=>KINDS.indexOf(a.kind)-KINDS.indexOf(b.kind)||a.name.localeCompare(b.name,'ja'));
+ else if(s==='name')arr.sort((a,b)=>String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
+ else if(s==='rarity')arr.sort((a,b)=>rarityRank(a)-rarityRank(b)||String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
+ else if(s==='kind')arr.sort((a,b)=>KINDS.indexOf(a.kind)-KINDS.indexOf(b.kind)||String(a.name).localeCompare(String(b.name),'ja')||Number(a.id)-Number(b.id));
  return arr;
 }
 function renderBook(){initBookFilters();const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}
@@ -320,7 +322,7 @@ async function shareMonster(m){
 async function copyMonster(m){const text=shareText(m);try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！')}catch(e){prompt('投稿文をコピーしてね',text)}}
 function render(){ $('breedCount').textContent=state.breedCount;$('foundCount').textContent=state.found.length;$('rareCount').textContent=state.found.filter(m=>m.rarity!=='ノーマル').length;
  $('starterGrid').replaceChildren(...STARTERS.map(createStarterCard));renderBook();fillSelects();
- $('logList').replaceChildren();if(!state.logs.length){let li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。最初の配合を実行しよう！';$('logList').appendChild(li)}else state.logs.slice().reverse().forEach(x=>{let li=document.createElement('li'),time=document.createElement('time');time.textContent=x.time;li.append(time,document.createTextNode(x.text));$('logList').appendChild(li)});
+ $('logList').replaceChildren();if(!state.logs.length){let li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。最初の配合を実行しよう！';$('logList').appendChild(li)}else state.logs.slice().reverse().forEach(x=>{let li=document.createElement('li'),time=document.createElement('time');time.textContent=x.time;if(x.type==='discovery-modal'){li.classList.add('modal-discovery');let badge=document.createElement('span');badge.className='log-badge';badge.textContent='発見モーダル';li.append(time,badge,document.createElement('br'),document.createTextNode(x.text))}else li.append(time,document.createTextNode(x.text));$('logList').appendChild(li)});
 }
 
 function inheritedTraits(a,b,h){
@@ -528,6 +530,7 @@ function showNextDiscovery(){
  const modal=$('discoveryModal');
  if(!discoveryQueue.length){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';return;}
  const item=discoveryQueue.shift();$('discoveryIcon').textContent=item.icon;$('discoveryTitle').textContent=item.title;$('discoveryText').textContent=item.text;
+ state.logs.push({time:new Date().toLocaleString('ja-JP'),text:item.logText||item.text,type:'discovery-modal'});if(state.logs.length>150)state.logs=state.logs.slice(-150);save();render();
  modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';$('discoveryClose').focus();
 }
 function closeDiscovery(){const modal=$('discoveryModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true');showNextDiscovery();}
@@ -588,8 +591,8 @@ function breed(){if(selectionMode==='randomEach'){lockedParents=[randomParent(),
  const knownRarities=new Set(state.found.map(x=>x.rarity));
  let m={id:state.nextId++,name,kind,color:colors[idx],accent:accents[idx],rarity,motif:motifs[kind],traits:inheritedTraits(a,b,h),desc:''};m.desc=lore(m);
  let duplicate=state.found.some(x=>x.name===m.name&&x.kind===m.kind&&x.rarity===m.rarity);
- if(!knownKinds.has(m.kind))discoveryQueue.push({icon:'🧬',title:`初めての${m.kind}種！`,text:`${m.name}の誕生により、新しい種族を発見しました。図鑑に記録されました。`});
- if(!knownRarities.has(m.rarity))discoveryQueue.push({icon:'✦',title:`初めての${m.rarity}！`,text:`${m.name}が初めての${m.rarity}個体です。新たな発見を図鑑に記録しました。`});
+ if(!knownKinds.has(m.kind)){const text=`${m.name}の誕生により、新しい種族を発見しました。`;discoveryQueue.push({icon:'🧬',title:`初めての${m.kind}種！`,text,logText:`種族発見：${text}`});}
+ if(!knownRarities.has(m.rarity)){const text=`${m.name}が初めての${m.rarity}個体です。`;discoveryQueue.push({icon:'✦',title:`初めての${m.rarity}！`,text,logText:`レアリティ発見：${text}`});}
  if(!duplicate)state.found.push(m);
  state.logs.push({time:new Date().toLocaleString('ja-JP'),text:`${a.name} × ${b.name} → ${m.name}（${m.kind}・${m.rarity}）${duplicate?'／既知の特徴を再確認':''}`});if(state.logs.length>150)state.logs=state.logs.slice(-150);
  render();showResult(m,!duplicate);save();
