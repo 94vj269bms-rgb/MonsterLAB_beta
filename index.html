@@ -28,7 +28,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
 .mode-row button{padding:10px 6px;font-size:12px}.mode-row-three{grid-template-columns:repeat(3,minmax(0,1fr))}.mode-row-three button{min-height:48px;line-height:1.25;white-space:normal}
 .mode-row button.selected{border-color:var(--mint);background:#25475a}
-.kind-select{width:100%;background:#1b2440;color:white;border:1px solid #465477;border-radius:9px;padding:9px;font-size:13px;margin-top:5px}
+.book-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.book-filters label{font-size:12px;color:var(--muted);min-width:0}.book-filters .kind-select{margin-top:5px}.kind-select{width:100%;background:#1b2440;color:white;border:1px solid #465477;border-radius:9px;padding:9px;font-size:13px;margin-top:5px}
 .reset-zone{margin-top:20px;border-top:1px solid #303958;padding-top:12px;color:var(--muted);font-size:12px}
 .reset-zone summary{cursor:pointer;padding:8px 0}.reset-zone p{margin:6px 0}.reset-btn{background:#38202b;border-color:#764050;color:#ffdce2}
 #breedBtn{min-height:48px;font-size:15px}.breed-actions{scroll-margin-top:12px}
@@ -61,7 +61,12 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 <div id="result" class="panel result"><div class="tag">NEW DISCOVERY</div><canvas id="resultArt" width="256" height="256"></canvas><h3 id="resultName"></h3><div id="resultMeta"></div><p class="lore" id="resultLore"></p><div class="breed-actions"><button class="btn primary" id="shareBuddyBtn">📣 相棒をSNSでシェア</button><button class="btn" id="copyBuddyBtn">🔗 投稿文をコピー</button></div><p class="note">共有メニューに投稿文を渡すよ。SNSアプリ内への自動投稿・自動貼り付けは各SNSの制限でできない場合があるよ。</p></div>
 <div class="panel"><h2>🌱 初期研究個体</h2><p class="sub">各種族1体ずつ。ここから、あなただけのモンスターづくりが始まる。</p><div class="grid" id="starterGrid"></div></div>
 </section>
-<section id="book" class="section"><div class="panel"><h2>📖 発見図鑑</h2><p class="sub">あなたが生み出した相棒たちを記録。発見した姿は、あなたの研究成果になる。</p><div class="grid" id="bookGrid"></div></div></section>
+<section id="book" class="section"><div class="panel"><h2>📖 発見図鑑</h2><p class="sub">あなたが生み出した相棒たちを記録。発見した姿は、あなたの研究成果になる。</p>
+<div class="book-filters">
+<label>レアリティ<select id="bookRarity" class="kind-select"><option value="all">すべてのレアリティ</option></select></label>
+<label>種族<select id="bookKind" class="kind-select"><option value="all">すべての種族</option></select></label>
+<label>並び順<select id="bookSort" class="kind-select"><option value="newest">新しく発見した順</option><option value="oldest">古く発見した順</option><option value="name">名前順</option><option value="rarity">レアリティ順</option><option value="kind">種族順</option></select></label>
+</div><p id="bookCount" class="note"></p><div class="grid" id="bookGrid"></div></div></section>
 <section id="logs" class="section"><div class="panel"><h2>🔎 発見ログ</h2><p class="sub">配合の軌跡と研究成果。</p><ul class="log" id="logList"></ul><button class="btn" id="clearLog" style="width:100%;margin-top:10px">ログだけ消去</button></div></section>
 <div class="foot">MONSTER LAB · あなただけの魔導生物研究所</div>
 </main>
@@ -156,25 +161,34 @@ function artFor(m){return null;} // 固有画像は使わず、全個体をコ�
 function pixelSize(m){return m.rarity==='ノーマル'?32:m.rarity==='変異'?64:m.rarity==='レア'?128:m.rarity==='超レア'?256:256}
 function makeArtElement(m,cls='sprite-art'){let size=pixelResolution(m.rarity);let c=document.createElement('canvas');c.width=size;c.height=size;c.className=cls;c.dataset.pixelSize=size;drawGeneratedSprite(c,m);return c}
 function canvasFor(m,cls=''){let c=document.createElement('canvas');c.width=64;c.height=64;if(cls)c.className=cls;sprite(c,m);return c}
-function createCard(m){let d=document.createElement('article');d.className='monster';let art=document.createElement('div');art.className='art';art.appendChild(makeArtElement(m));d.appendChild(art);let h=document.createElement('h3');h.textContent=m.name;d.appendChild(h);let meta=document.createElement('div');meta.className='meta';meta.textContent=`${m.kind}種 · ${m.rarity} · ID ${m.id}`;d.appendChild(meta);let p=document.createElement('p');p.textContent=lore(m);d.appendChild(p);return d}
+function createCard(m, withShare=false){let d=document.createElement('article');d.className='monster';let art=document.createElement('div');art.className='art';art.appendChild(makeArtElement(m));d.appendChild(art);let h=document.createElement('h3');h.textContent=m.name;d.appendChild(h);let meta=document.createElement('div');meta.className='meta';meta.textContent=`${m.kind}種 · ${m.rarity} · ID ${m.id}`;d.appendChild(meta);let p=document.createElement('p');p.textContent=lore(m);d.appendChild(p);if(withShare){let actions=document.createElement('div');actions.className='breed-actions';let share=document.createElement('button');share.type='button';share.className='btn';share.textContent='📣 SNS共有';share.addEventListener('click',()=>shareMonster(m));let copy=document.createElement('button');copy.type='button';copy.className='btn';copy.textContent='🔗 投稿文コピー';copy.addEventListener('click',()=>copyMonster(m));actions.append(share,copy);d.appendChild(actions)}return d}
 let selectionMode='direct'; let lockedParents=null;
 const RARITY_ORDER=['ノーマル','変異','レア','超レア','幻'];
 
 function findByKind(kind){let choices=state.found.filter(m=>m.kind===kind);if(!choices.length)return STARTERS.find(m=>m.kind===kind)||STARTERS[0];return choices[0]}
 function fillOneParent(side, keep=true){
  const raritySel=$('rarity'+side),kindSel=$('kind'+side),individualSel=$('individual'+side);
- const oldR=keep?raritySel.value:'ノーマル',oldK=keep?kindSel.value:(side==='A'?'獣':'竜'),oldId=keep?individualSel.value:'';
- raritySel.innerHTML='';RARITY_ORDER.forEach(r=>{const n=state.found.filter(m=>m.rarity===r).length;if(n){let o=document.createElement('option');o.value=r;o.textContent=r+'（'+n+'）';raritySel.appendChild(o)}});
- raritySel.value=[...raritySel.options].some(o=>o.value===oldR)?oldR:(raritySel.options[0]?.value||'ノーマル');
- const kindOptions=[...new Set(state.found.filter(m=>m.rarity===raritySel.value).map(m=>m.kind))];
- kindSel.innerHTML='';kindOptions.forEach(k=>{let o=document.createElement('option');o.value=k;o.textContent=k+'種';kindSel.appendChild(o)});
- kindSel.value=kindOptions.includes(oldK)?oldK:(kindOptions[0]||'獣');
+ const oldR=raritySel.value||'ノーマル',oldK=kindSel.value||(side==='A'?'獣':'竜'),oldId=individualSel.value||'';
+ const previousR=oldR;
+ raritySel.replaceChildren();
+ RARITY_ORDER.forEach(r=>{
+  const n=state.found.filter(m=>m.rarity===r).length;
+  if(n){const o=document.createElement('option');o.value=r;o.textContent=r+'（'+n+'）';raritySel.appendChild(o)}
+ });
+ raritySel.value=[...raritySel.options].some(o=>o.value===previousR)?previousR:(raritySel.options[0]?.value||'ノーマル');
+ const inRarity=state.found.filter(m=>m.rarity===raritySel.value);
+ const kindOptions=[...new Set(inRarity.map(m=>m.kind))].sort((a,b)=>KINDS.indexOf(a)-KINDS.indexOf(b));
+ kindSel.replaceChildren();
+ kindOptions.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k+'種';kindSel.appendChild(o)});
+ kindSel.value=kindOptions.includes(oldK)?oldK:(kindOptions[0]||'');
  const candidates=state.found.filter(m=>m.rarity===raritySel.value&&m.kind===kindSel.value).sort((a,b)=>a.name.localeCompare(b.name,'ja'));
- individualSel.innerHTML='';candidates.forEach(m=>{let o=document.createElement('option');o.value=String(m.id);o.textContent=m.name+'（'+m.rarity+'・'+m.kind+'・ID '+m.id+'）';individualSel.appendChild(o)});
+ individualSel.replaceChildren();
+ candidates.forEach(m=>{const o=document.createElement('option');o.value=String(m.id);o.textContent=m.name+'（ID '+m.id+'）';individualSel.appendChild(o)});
  if(candidates.some(m=>String(m.id)===oldId))individualSel.value=oldId;
+ if(!candidates.length){const o=document.createElement('option');o.value='';o.textContent='該当する個体がいません';individualSel.appendChild(o)}
 }
 function fillSelects(){fillOneParent('A');fillOneParent('B');drawParents()}
-function selectedIndividual(side){return state.found.find(m=>String(m.id)===$('individual'+side).value)||state.found[0]||STARTERS[0]}
+function selectedIndividual(side){return state.found.find(m=>String(m.id)===$('individual'+side).value)||state.found.find(m=>m.rarity===$('rarity'+side).value&&m.kind===$('kind'+side).value)||state.found[0]||STARTERS[0]}
 function randomParent(){return state.found[Math.floor(Math.random()*state.found.length)]||STARTERS[0]}
 function chosenParents(){
  if(selectionMode==='lockedRandom')return lockedParents||[randomParent(),randomParent()];
@@ -196,8 +210,37 @@ function setSelectionMode(mode){
  if(mode==='lockedRandom'){lockedParents=[randomParent(),randomParent()];}
  drawParents();
 }
+function initBookFilters(){
+ const r=$('bookRarity'),k=$('bookKind');
+ const oldR=r.value||'all',oldK=k.value||'all';
+ r.replaceChildren(new Option('すべてのレアリティ','all'));
+ RARITY_ORDER.forEach(x=>{if(state.found.some(m=>m.rarity===x))r.add(new Option(x,x))});
+ k.replaceChildren(new Option('すべての種族','all'));
+ KINDS.forEach(x=>{if(state.found.some(m=>m.kind===x))k.add(new Option(x+'種',x))});
+ r.value=[...r.options].some(o=>o.value===oldR)?oldR:'all';
+ k.value=[...k.options].some(o=>o.value===oldK)?oldK:'all';
+}
+function sortedBook(){
+ let arr=state.found.slice();
+ const r=$('bookRarity').value,k=$('bookKind').value,s=$('bookSort').value;
+ if(r!=='all')arr=arr.filter(m=>m.rarity===r);
+ if(k!=='all')arr=arr.filter(m=>m.kind===k);
+ if(s==='newest')arr.sort((a,b)=>Number(b.id)-Number(a.id));
+ else if(s==='oldest')arr.sort((a,b)=>Number(a.id)-Number(b.id));
+ else if(s==='name')arr.sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+ else if(s==='rarity')arr.sort((a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity)||a.name.localeCompare(b.name,'ja'));
+ else if(s==='kind')arr.sort((a,b)=>KINDS.indexOf(a.kind)-KINDS.indexOf(b.kind)||a.name.localeCompare(b.name,'ja'));
+ return arr;
+}
+function renderBook(){initBookFilters();const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}
+async function shareMonster(m){
+ const text=shareText(m);
+ if(navigator.share){try{await navigator.share({title:'MONSTER LAB｜相棒発見！',text,url:'https://94vj269bms-rgb.github.io/MonsterLAB_beta/'});return}catch(e){if(e&&e.name==='AbortError')return}}
+ try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！SNSに貼り付けてね。')}catch(e){prompt('この投稿文をコピーしてSNSに貼り付けてね',text)}
+}
+async function copyMonster(m){const text=shareText(m);try{await navigator.clipboard.writeText(text);alert('投稿文をコピーしたよ！')}catch(e){prompt('投稿文をコピーしてね',text)}}
 function render(){ $('breedCount').textContent=state.breedCount;$('foundCount').textContent=state.found.length;$('rareCount').textContent=state.found.filter(m=>m.rarity!=='ノーマル').length;
- $('starterGrid').replaceChildren(...STARTERS.map(createCard));$('bookGrid').replaceChildren(...state.found.slice().reverse().map(createCard));fillSelects();
+ $('starterGrid').replaceChildren(...STARTERS.map(createCard));renderBook();fillSelects();
  $('logList').replaceChildren();if(!state.logs.length){let li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。最初の配合を実行しよう！';$('logList').appendChild(li)}else state.logs.slice().reverse().forEach(x=>{let li=document.createElement('li'),time=document.createElement('time');time.textContent=x.time;li.append(time,document.createTextNode(x.text));$('logList').appendChild(li)});
 }
 
@@ -350,15 +393,16 @@ function breed(){if(selectionMode==='randomEach'){lockedParents=[randomParent(),
 }
 document.querySelectorAll('nav button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===btn));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===btn.dataset.tab));window.scrollTo({top:0,behavior:'smooth'})}));
 ['A','B'].forEach(side=>{
- $('rarity'+side).addEventListener('change',()=>{fillOneParent(side,false);drawParents()});
+ $('rarity'+side).addEventListener('change',()=>{fillOneParent(side,true);drawParents()});
  $('kind'+side).addEventListener('change',()=>{fillOneParent(side,false);drawParents()});
  $('individual'+side).addEventListener('change',drawParents);
 });
+['bookRarity','bookKind','bookSort'].forEach(id=>$(id).addEventListener('change',()=>{const arr=sortedBook();$('bookGrid').replaceChildren(...arr.map(m=>createCard(m,true)));$('bookCount').textContent=arr.length+'体を表示中（発見 '+state.found.length+'体）'}));
 $('kindMode').addEventListener('click',()=>setSelectionMode('direct'));
 $('lockedRandomMode').addEventListener('click',()=>setSelectionMode('lockedRandom'));
 $('randomEachMode').addEventListener('click',()=>setSelectionMode('randomEach'));
 for(const side of ['A','B']){
- $('rarity'+side).addEventListener('change',()=>{fillOneParent(side,false);drawParents()});
+ $('rarity'+side).addEventListener('change',()=>{fillOneParent(side,true);drawParents()});
  $('kind'+side).addEventListener('change',()=>{fillOneParent(side,true);drawParents()});
  $('individual'+side).addEventListener('change',drawParents);
 }
