@@ -14,7 +14,7 @@ main{max-width:900px;margin:auto;padding:14px 12px 40px}.stats{display:grid;grid
 nav{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px 0;background:#0c1020ed;backdrop-filter:blur(12px)}
 nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;color:var(--ink);padding:11px 8px;font-weight:700;font-size:13px;cursor:pointer}nav button.active,.btn.primary{background:linear-gradient(135deg,#416a83,#365c72);border-color:#7be3d2}button:active{transform:scale(.985)}
 .panel{padding:14px;margin:8px 0 14px}.panel h2{font-size:17px;margin:0 0 5px}.sub{color:var(--muted);font-size:12px;margin:0 0 12px}
-.parents{display:grid;grid-template-columns:1fr 1fr;gap:10px}.parentbox{background:#0d1327;border:1px dashed #465477;border-radius:14px;padding:10px;text-align:center;min-width:0}.parentbox canvas{width:96px;height:96px;max-width:100%;image-rendering:pixelated}.parentbox label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.parentbox select{width:100%;min-width:0;background:#1b2440;color:white;border:1px solid #465477;border-radius:9px;padding:8px;font-size:12px}
+.parents{display:grid;grid-template-columns:1fr 1fr;gap:10px}.parentbox{background:#0d1327;border:1px dashed #465477;border-radius:14px;padding:10px;text-align:center;min-width:0}.parentbox canvas{width:128px;height:128px;max-width:100%;image-rendering:pixelated;image-rendering:crisp-edges}.parentbox label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.parentbox select{width:100%;min-width:0;background:#1b2440;color:white;border:1px solid #465477;border-radius:9px;padding:8px;font-size:12px}
 .breed-actions{display:flex;gap:8px;margin-top:12px}.breed-actions button{flex:1}.note{font-size:11px;color:var(--muted);margin-top:9px}
 .result{display:none;text-align:center;border-color:#8c7ac8;background:radial-gradient(ellipse at center,#28264b,#151a31)}.result.show{display:block}.result canvas{width:128px;height:128px;image-rendering:pixelated}.result h3{margin:4px 0}.tag{display:inline-block;border:1px solid #53648b;border-radius:999px;padding:2px 9px;font-size:11px;color:var(--mint);margin:2px}.lore{font-size:13px;color:#d4dcf4;max-width:540px;margin:8px auto}
 .milestone{display:none;border:1px solid #ffcf70;background:linear-gradient(130deg,#49371b,#29203b);border-radius:14px;padding:14px;margin:12px 0;text-align:center;box-shadow:0 0 22px #ffcc5b30}.milestone.show{display:block}.milestone strong{color:var(--gold);font-size:17px}.milestone p{font-size:12px;color:#f7e9c7;margin:5px 0 0}
@@ -26,7 +26,7 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 .monster .art img{width:144px;height:144px;object-fit:contain;image-rendering:pixelated;max-width:100%}
 .parentbox .sprite-art{width:128px;height:128px}
 .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
-.mode-row button{padding:10px 6px;font-size:12px}
+.mode-row button{padding:10px 6px;font-size:12px}.mode-row-three{grid-template-columns:repeat(3,minmax(0,1fr))}.mode-row-three button{min-height:48px;line-height:1.25;white-space:normal}
 .mode-row button.selected{border-color:var(--mint);background:#25475a}
 .kind-select{width:100%;background:#1b2440;color:white;border:1px solid #465477;border-radius:9px;padding:9px;font-size:13px;margin-top:5px}
 .reset-zone{margin-top:20px;border-top:1px solid #303958;padding-top:12px;color:var(--muted);font-size:12px}
@@ -50,12 +50,12 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 <nav><button class="active" data-tab="lab">🧪 配合ラボ</button><button data-tab="book">📖 発見図鑑</button><button data-tab="logs">🔎 発見ログ</button></nav>
 <section id="lab" class="section active">
 <div class="panel"><h2>🧬 配合実験</h2><p class="sub">決まった正解も、決まった完成形もない。親の組み合わせと偶然から、自分だけのモンスターを作ろう。</p><p class="sub">2体の親を選んで、親を組み合わせて、新しい魔導生物を生み出そう。高レア同士の配合ほど、子も高レアになりやすい。</p>
-<div class="mode-row"><button class="btn selected" id="kindMode">種族を選ぶ</button><button class="btn" id="randomMode">親をランダム選択</button></div>
+<div class="mode-row mode-row-three"><button class="btn selected" id="kindMode">直接選択</button><button class="btn" id="lockedRandomMode">一度ランダムに決定</button><button class="btn" id="randomEachMode">配合ごとにランダム</button></div>
 <div class="parents">
 <div class="parentbox"><label>親個体 A</label><img id="parentArtA" class="sprite-art" alt="親Aのモンスター"><select id="rarityA" class="kind-select" aria-label="親Aのレアリティ"></select><select id="kindA" class="kind-select" aria-label="親Aの種族"></select><select id="individualA" class="kind-select" aria-label="親Aの個体名"></select><div id="parentNameA" class="parent-summary"></div></div>
 <div class="parentbox"><label>親個体 B</label><img id="parentArtB" class="sprite-art" alt="親Bのモンスター"><select id="rarityB" class="kind-select" aria-label="親Bのレアリティ"></select><select id="kindB" class="kind-select" aria-label="親Bの種族"></select><select id="individualB" class="kind-select" aria-label="親Bの個体名"></select><div id="parentNameB" class="parent-summary"></div></div>
 </div>
-<div class="breed-actions"><button class="btn primary" id="breedBtn">✦ 配合を実行する</button><button class="btn" id="autoBreedBtn">🎲 ランダム配合</button></div>
+<div class="breed-actions"><button class="btn primary" id="breedBtn">✦ 配合する</button></div>
 <details class="reset-zone"><summary>⚙️ データ管理</summary><p>セーブデータはこのブラウザ内に保存されます。端末変更やブラウザ削除に備えてバックアップしてください。</p><div class="breed-actions"><button class="btn" id="exportBtn" type="button">💾 データを書き出す</button><button class="btn" id="importBtn" type="button">📂 データを復元</button></div><input id="importFile" type="file" accept="application/json,.json" hidden><button class="btn reset-btn" id="resetBtn">データを初期化する</button></details><div class="note">親はレアリティ → 種族 → 個体名の順で直接選べます。ランダム配合なら親選びもワンタップ！</div></div>
 <div id="milestone" class="milestone"><strong id="milestoneTitle">研究マイルストーン達成！</strong><p id="milestoneText">研究成果を記録しました。</p></div>
 <div id="result" class="panel result"><div class="tag">NEW DISCOVERY</div><canvas id="resultArt" width="256" height="256"></canvas><h3 id="resultName"></h3><div id="resultMeta"></div><p class="lore" id="resultLore"></p><div class="breed-actions"><button class="btn primary" id="shareBuddyBtn">📣 相棒をSNSでシェア</button><button class="btn" id="copyBuddyBtn">🔗 投稿文をコピー</button></div><p class="note">共有メニューに投稿文を渡すよ。SNSアプリ内への自動投稿・自動貼り付けは各SNSの制限でできない場合があるよ。</p></div>
@@ -156,8 +156,8 @@ function artFor(m){return null;} // 固有画像は使わず、全個体をコ�
 function pixelSize(m){return m.rarity==='ノーマル'?32:m.rarity==='変異'?64:m.rarity==='レア'?128:m.rarity==='超レア'?256:256}
 function makeArtElement(m,cls='sprite-art'){let size=pixelResolution(m.rarity);let c=document.createElement('canvas');c.width=size;c.height=size;c.className=cls;c.dataset.pixelSize=size;drawGeneratedSprite(c,m);return c}
 function canvasFor(m,cls=''){let c=document.createElement('canvas');c.width=64;c.height=64;if(cls)c.className=cls;sprite(c,m);return c}
-function createCard(m){let d=document.createElement('article');d.className='monster';let art=document.createElement('div');art.className='art';art.appendChild(makeArtElement(m));d.appendChild(art);let h=document.createElement('h3');h.textContent=m.name;d.appendChild(h);let meta=document.createElement('div');meta.className='meta';meta.textContent=`${m.kind}種 · ${m.rarity} · ${pixelResolution(m.rarity)+'×'+pixelResolution(m.rarity)} · ID ${m.id}`;d.appendChild(meta);let p=document.createElement('p');p.textContent=lore(m);d.appendChild(p);return d}
-let selectionMode='kind';
+function createCard(m){let d=document.createElement('article');d.className='monster';let art=document.createElement('div');art.className='art';art.appendChild(makeArtElement(m));d.appendChild(art);let h=document.createElement('h3');h.textContent=m.name;d.appendChild(h);let meta=document.createElement('div');meta.className='meta';meta.textContent=`${m.kind}種 · ${m.rarity} · ID ${m.id}`;d.appendChild(meta);let p=document.createElement('p');p.textContent=lore(m);d.appendChild(p);return d}
+let selectionMode='direct'; let lockedParents=null;
 const RARITY_ORDER=['ノーマル','変異','レア','超レア','幻'];
 
 function findByKind(kind){let choices=state.found.filter(m=>m.kind===kind);if(!choices.length)return STARTERS.find(m=>m.kind===kind)||STARTERS[0];return choices[0]}
@@ -170,16 +170,31 @@ function fillOneParent(side, keep=true){
  kindSel.innerHTML='';kindOptions.forEach(k=>{let o=document.createElement('option');o.value=k;o.textContent=k+'種';kindSel.appendChild(o)});
  kindSel.value=kindOptions.includes(oldK)?oldK:(kindOptions[0]||'獣');
  const candidates=state.found.filter(m=>m.rarity===raritySel.value&&m.kind===kindSel.value).sort((a,b)=>a.name.localeCompare(b.name,'ja'));
- individualSel.innerHTML='';candidates.forEach(m=>{let o=document.createElement('option');o.value=String(m.id);o.textContent=m.name+'（ID '+m.id+'）';individualSel.appendChild(o)});
+ individualSel.innerHTML='';candidates.forEach(m=>{let o=document.createElement('option');o.value=String(m.id);o.textContent=m.name+'（'+m.rarity+'・'+m.kind+'・ID '+m.id+'）';individualSel.appendChild(o)});
  if(candidates.some(m=>String(m.id)===oldId))individualSel.value=oldId;
 }
 function fillSelects(){fillOneParent('A');fillOneParent('B');drawParents()}
-function selectedIndividual(side){return state.found.find(m=>String(m.id)===$('individual'+side).value)||state.found[0]}
-function chosenParents(){if(selectionMode==='random'){return [state.found[Math.floor(Math.random()*state.found.length)],state.found[Math.floor(Math.random()*state.found.length)]]}return [selectedIndividual('A'),selectedIndividual('B')]}
-function drawParents(){let a=selectedIndividual('A'),b=selectedIndividual('B');if(selectionMode==='random'){a=state.found[Math.floor(Math.random()*state.found.length)]||STARTERS[0];b=state.found[Math.floor(Math.random()*state.found.length)]||STARTERS[1]}
- let oldA=$('parentArtA'),newA=makeArtElement(a,'sprite-art');newA.id='parentArtA';newA.alt='親Aのモンスター';oldA.replaceWith(newA);
- let oldB=$('parentArtB'),newB=makeArtElement(b,'sprite-art');newB.id='parentArtB';newB.alt='親Bのモンスター';oldB.replaceWith(newB);
- $('parentNameA').textContent=a.name+' · '+a.rarity;$('parentNameB').textContent=b.name+' · '+b.rarity;
+function selectedIndividual(side){return state.found.find(m=>String(m.id)===$('individual'+side).value)||state.found[0]||STARTERS[0]}
+function randomParent(){return state.found[Math.floor(Math.random()*state.found.length)]||STARTERS[0]}
+function chosenParents(){
+ if(selectionMode==='lockedRandom')return lockedParents||[randomParent(),randomParent()];
+ if(selectionMode==='randomEach')return [randomParent(),randomParent()];
+ return [selectedIndividual('A'),selectedIndividual('B')];
+}
+function drawParents(){
+ let [a,b]=selectionMode==='lockedRandom'?(lockedParents||[selectedIndividual('A'),selectedIndividual('B')]):selectionMode==='randomEach'?(lockedParents||[selectedIndividual('A'),selectedIndividual('B')]):[selectedIndividual('A'),selectedIndividual('B')];
+ for(const [side,m] of [['A',a],['B',b]]){
+  const old=$('parentArt'+side),c=makeArtElement(m,'sprite-art');c.id='parentArt'+side;c.alt='親'+side+'のモンスター';old.replaceWith(c);
+  $('parentName'+side).textContent=m.name+' · '+m.kind+'種 · '+m.rarity;
+ }
+}
+function setSelectionMode(mode){
+ selectionMode=mode;
+ for(const [id,val] of [['kindMode','direct'],['lockedRandomMode','lockedRandom'],['randomEachMode','randomEach']])$(id).classList.toggle('selected',mode===val);
+ const direct=mode==='direct';
+ ['rarityA','kindA','individualA','rarityB','kindB','individualB'].forEach(id=>$(id).disabled=!direct);
+ if(mode==='lockedRandom'){lockedParents=[randomParent(),randomParent()];}
+ drawParents();
 }
 function render(){ $('breedCount').textContent=state.breedCount;$('foundCount').textContent=state.found.length;$('rareCount').textContent=state.found.filter(m=>m.rarity!=='ノーマル').length;
  $('starterGrid').replaceChildren(...STARTERS.map(createCard));$('bookGrid').replaceChildren(...state.found.slice().reverse().map(createCard));fillSelects();
@@ -197,7 +212,7 @@ function inheritedTraits(a,b,h){
  for(const t of candidates){if(traits.length<5&&!traits.includes(t))traits.push(t)}
  return traits.slice(0,5);
 }
-function pixelResolution(rarity){return rarity==='ノーマル'?32:rarity==='変異'?64:rarity==='レア'?128:rarity==='超レア'?256:256}
+function pixelResolution(rarity){return rarity==='ノーマル'?64:rarity==='変異'?96:rarity==='レア'?128:rarity==='超レア'?256:256}
 function drawGeneratedSprite(canvas,m){
  const size=canvas.width,ctx=canvas.getContext('2d');
  ctx.clearRect(0,0,size,size);ctx.imageSmoothingEnabled=false;
@@ -316,12 +331,12 @@ function showResult(m,isNew){
  currentResult=m;
  let old=$('resultArt'),art=makeArtElement(m,'sprite-art');art.id='resultArt';old.replaceWith(art);
  $('resultName').textContent=m.name;
- $('resultMeta').textContent=`${m.kind}種 · ${m.rarity} · ${pixelResolution(m.rarity)+'×'+pixelResolution(m.rarity)} · ID ${m.id}`;
+ $('resultMeta').textContent=`${m.kind}種 · ${m.rarity} · ID ${m.id}`;
  $('resultLore').textContent=lore(m);$('result').classList.add('show');
  if(isNew){let tag=document.createElement('span');tag.className='tag';tag.textContent='NEW';$('resultMeta').appendChild(document.createTextNode(' '));$('resultMeta').appendChild(tag)}
  
 }
-function breed(){let [a,b]=chosenParents();state.breedCount++;let seed=`${a.id}|${b.id}|${state.breedCount}`,h=hash(seed);
+function breed(){if(selectionMode==='randomEach'){lockedParents=[randomParent(),randomParent()];drawParents()}let [a,b]=chosenParents();state.breedCount++;let seed=`${a.id}|${b.id}|${state.breedCount}`,h=hash(seed);
  let pool=[];for(let i=0;i<5;i++)pool.push(a.kind);for(let i=0;i<5;i++)pool.push(b.kind);for(const k of KINDS)pool.push(k);
  let kind=pool[h%pool.length],rarity=rarityFor(seed,state.breedCount,a,b);let motifs={ '獣':'beast','竜':'dragon','精霊':'spirit','植物':'plant','鉱石':'ore','影':'shadow','水棲':'water','鳥':'bird','機械':'machine','幻獣':'mythic','蟲':'insect'};
  const names={'獣':['モフル','ルナポン','ケモリ','フワット'],'竜':['アカツノ','ヒバナドレイク','リュミドラ','コガネ竜'],'精霊':['シズクル','ミラージュ','セレネ','ホシノコ'],'植物':['ハナネム','モリコ','ツタマル','リーフィ'],'鉱石':['クリスタ','ガンセキン','ルビーゴーレム','キラライト'],'影':['ヨルル','カゲボウシ','ナイトミィ','クロノワ'],'水棲':['アワポン','ミズリィ','シオマル','ナミノコ'],'鳥':['ハネピィ','ソラリス','ツバサクン','ピヨルン'],'機械':['ギアポン','ボルトル','クロックン','メカミィ'],'幻獣':['ユメノワ','ルミナイト','ムーンホエル','セイレーン'],'蟲':['コガネバグ','ルビービートル','ミツバチュラ','カゲロウムシ']};
@@ -339,9 +354,15 @@ document.querySelectorAll('nav button').forEach(btn=>btn.addEventListener('click
  $('kind'+side).addEventListener('change',()=>{fillOneParent(side,false);drawParents()});
  $('individual'+side).addEventListener('change',drawParents);
 });
-$('kindMode').addEventListener('click',()=>{selectionMode='kind';$('kindMode').classList.add('selected');$('randomMode').classList.remove('selected');drawParents()});
-$('randomMode').addEventListener('click',()=>{selectionMode='random';$('randomMode').classList.add('selected');$('kindMode').classList.remove('selected');drawParents()});
-$('breedBtn').addEventListener('click',breed);$('shareBuddyBtn').addEventListener('click',shareBuddy);$('copyBuddyBtn').addEventListener('click',copyBuddy);$('autoBreedBtn').addEventListener('click',()=>{selectionMode='random';$('randomMode').classList.add('selected');$('kindMode').classList.remove('selected');breed()});
+$('kindMode').addEventListener('click',()=>setSelectionMode('direct'));
+$('lockedRandomMode').addEventListener('click',()=>setSelectionMode('lockedRandom'));
+$('randomEachMode').addEventListener('click',()=>setSelectionMode('randomEach'));
+for(const side of ['A','B']){
+ $('rarity'+side).addEventListener('change',()=>{fillOneParent(side,false);drawParents()});
+ $('kind'+side).addEventListener('change',()=>{fillOneParent(side,true);drawParents()});
+ $('individual'+side).addEventListener('change',drawParents);
+}
+$('breedBtn').addEventListener('click',breed);$('shareBuddyBtn').addEventListener('click',shareBuddy);$('copyBuddyBtn').addEventListener('click',copyBuddy);
 $('clearLog').addEventListener('click',()=>{state.logs=[];save();render()});
 $('exportBtn')?.addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='monster-lab-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
 $('importBtn')?.addEventListener('click',()=>$('importFile').click());
