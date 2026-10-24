@@ -266,94 +266,159 @@ function drawGeneratedSprite(canvas,m){
  const pick=(arr,n)=>arr[Math.abs(n)%arr.length];
  const rar=m.rarity||'ノーマル';
  const tier=rar==='ノーマル'?0:rar==='変異'?1:rar==='レア'?2:rar==='超レア'?3:4;
- const motif=m.motif||'beast',traits=m.traits||[];
- const bodyX=pick([21,22,23,24,25],seed),bodyW=pick([17,18,19,20,21],seed>>3);
- const bodyY=pick([23,24,25,26],seed>>5),bodyH=pick([17,18,19,20,21],seed>>7);
- // Shadow and species-specific silhouette.
- px(12,51,40,3,'#172334');
- if(motif==='dragon'){
-   px(12,25,bodyW+9,bodyH-1,base);px(34,20,15,14,base);px(45,23,10,9,base);
-   px(51,27,7,3,accent);px(16,15,7,12,base);px(19,9,5,9,accent);
-   px(29,17,7,10,base);px(32,11,5,8,accent);
-   px(13,42,7,10,base);px(35,42,7,10,base);
-   px(18,29,12,4,light);px(21,33,7,4,accent);
-   px(43,38,12,4,base);px(53,36,5,4,accent);
-   if(tier>=1){px(8,24,10,4,accent);px(9,20,5,5,base);px(26,25,5,12,dark);px(29,26,4,10,accent);}
- }else if(motif==='insect'){
-   px(27,9,10,10,base);px(22,19,20,12,base);px(18,31,28,13,base);px(23,44,7,7,base);px(34,44,7,7,base);
-   px(28,4,3,8,accent);px(35,4,3,8,accent);px(10,20,13,12,accent);px(7,24,13,12,base);px(41,20,13,12,accent);px(44,24,13,12,base);
-   for(let i=0;i<3+(tier>1?2:0);i++){px(14+i*3,34+(i%2)*4,2,3,accent);px(42-i*3,34+(i%2)*4,2,3,dark);}
- }else if(motif==='spirit'||motif==='mythic'){
-   px(23,19,18,24,base);px(26,12,12,10,base);px(27,42,10,7,base);
-   px(8,20,14,7,accent);px(5,16,10,8,base);px(42,20,14,7,accent);px(49,16,10,8,base);
-   px(28,6,3,7,accent);px(34,6,3,7,accent);px(16,43,8,5,base);px(40,43,8,5,base);
- }else if(motif==='plant'){
-   px(22,25,20,21,base);px(17,31,7,12,base);px(40,31,7,12,base);px(24,44,6,8,base);px(34,44,6,8,base);
-   px(9,14,16,7,accent);px(14,18,9,10,base);px(39,14,16,7,accent);px(41,18,9,10,base);px(28,10,8,14,accent);
-   px(27,31,3,10,'#3e9b63');px(34,33,3,8,'#3e9b63');
- }else if(motif==='ore'){
-   px(22,12,8,12,accent);px(35,9,8,15,accent);px(17,23,30,22,base);px(13,29,8,12,base);px(43,29,8,12,base);
-   px(22,44,8,7,base);px(34,44,8,7,base);px(24,28,6,8,accent);px(35,30,6,7,light);
- }else if(motif==='shadow'){
-   px(22,14,20,9,base);px(17,22,30,23,base);px(20,43,8,8,base);px(36,43,8,8,base);px(11,27,8,12,base);px(45,27,8,12,base);
-   px(22,17,5,4,accent);px(37,17,5,4,accent);
- }else if(motif==='water'){
-   px(22,17,20,8,base);px(15,25,34,17,base);px(21,42,9,7,base);px(34,42,9,7,base);
-   px(7,27,10,7,accent);px(47,27,10,7,accent);px(25,12,5,5,light);px(34,12,5,5,light);
-   px(13,35,5,3,accent);px(46,35,5,3,accent);
- }else if(motif==='bird'){
-   px(23,22,20,20,base);px(26,14,15,12,base);px(38,18,12,7,base);px(49,20,7,3,accent);
-   px(12,26,15,13,accent);px(15,30,10,8,base);px(28,41,5,10,base);px(37,41,5,10,base);px(24,14,4,6,accent);
- }else if(motif==='machine'){
-   px(21,14,22,10,base);px(16,24,32,22,base);px(20,46,9,6,base);px(36,46,9,6,base);
-   px(24,17,6,5,light);px(35,17,6,5,light);px(27,29,10,9,accent);px(11,27,6,14,base);px(47,27,6,14,base);
-   px(29,31,6,5,dark);
+ const kind=m.kind||'獣',traits=m.traits||[];
+ const pal={ink:'#172334',shade:dark,base,mid:accent,hi:light};
+ const outline=(x,y,w,h,c=pal.ink)=>{px(x,y,w,h,c);};
+ const eye=pick(['#111629','#18233a','#251b35'],seed>>11);
+ // Ground shadow is kept small so the silhouette remains legible at icon size.
+ px(15,53,34,2,'#172334');
+ // Species-specific body plans: each species uses a different silhouette grammar.
+ if(kind==='獣'){
+   // Compact, low-slung creature with a wedge-shaped head, not a generic round mascot.
+   px(18,25,25,17,pal.ink);px(20,23,21,17,base);px(16,29,7,9,base);
+   px(21,20,8,7,base);px(35,21,8,7,base);
+   px(18,22,6,5,accent);px(37,23,5,4,accent);
+   px(21,39,7,11,pal.ink);px(34,39,7,11,pal.ink);px(22,39,4,9,base);px(35,39,4,9,base);
+   px(40,34,10,4,pal.ink);px(47,31,6,5,pal.ink);px(41,33,10,3,accent);
+   // fur tufts and muzzle
+   px(26,18,5,4,pal.ink);px(27,17,3,4,base);px(27,30,12,7,light);px(35,32,5,4,light);
+   px(24,25,4,3,eye);px(25,25,1,1,light);px(34,25,4,3,eye);px(35,25,1,1,light);
+   px(31,33,3,2,pal.ink);px(29,36,5,1,pal.ink);
+   px(19,34,3,3,accent);px(22,37,3,2,light);
+ }else if(kind==='竜'){
+   // Long-backed reptile, swept crest, extended muzzle and plated tail.
+   px(13,27,31,15,pal.ink);px(15,25,28,14,base);px(36,22,12,10,base);px(44,25,10,6,base);px(52,28,6,3,pal.ink);px(49,27,7,3,accent);
+   px(18,20,5,8,accent);px(21,18,4,7,base);px(29,21,5,7,accent);px(32,20,4,7,base);
+   px(18,39,7,11,pal.ink);px(35,38,7,12,pal.ink);px(20,39,4,9,base);px(37,38,4,10,base);
+   px(13,28,9,5,accent);px(15,29,8,3,base);
+   for(let i=0;i<5;i++){px(20+i*5,26+(i%2),3,3,accent);px(21+i*5,30+(i%2),2,2,dark);}
+   px(43,24,3,3,eye);px(44,24,1,1,light);px(51,29,3,1,pal.ink);
+   px(42,33,6,2,light);px(28,36,8,3,dark);
+ }else if(kind==='精霊'){
+   // A floating, tapered wisp with orbiting shards rather than a humanoid body.
+   px(24,20,16,26,pal.ink);px(26,18,12,23,base);px(28,13,8,8,base);
+   px(23,35,5,9,base);px(36,34,5,10,base);px(27,41,4,7,accent);px(34,40,4,8,accent);
+   px(10,25,9,5,pal.ink);px(11,23,8,4,accent);px(45,19,8,5,pal.ink);px(46,17,7,4,light);
+   px(29,25,3,4,eye);px(34,25,3,4,eye);px(30,26,1,1,light);px(35,26,1,1,light);
+   px(29,33,7,2,light);px(31,35,3,2,accent);
+   px(17,15,3,3,light);px(43,37,3,3,light);
+ }else if(kind==='植物'){
+   // Stem-like body, leaf crown and root feet.
+   px(23,27,18,19,pal.ink);px(25,28,14,16,base);px(28,19,8,12,base);
+   px(12,17,14,7,pal.ink);px(14,15,12,7,'#68b86b');px(38,13,14,8,pal.ink);px(39,12,12,7,'#68b86b');
+   px(26,17,6,10,pal.ink);px(28,15,5,11,accent);
+   px(21,33,5,10,'#3e9b63');px(39,32,5,11,'#3e9b63');
+   px(25,43,5,9,pal.ink);px(34,43,5,9,pal.ink);px(26,44,3,7,base);px(35,44,3,7,base);
+   px(27,29,3,3,eye);px(35,29,3,3,eye);px(28,30,1,1,light);px(36,30,1,1,light);
+   px(30,35,5,2,pal.ink);px(29,38,7,2,accent);
+   px(18,24,5,3,light);px(41,23,4,3,light);
+ }else if(kind==='鉱石'){
+   // Faceted, heavy mineral body with a visibly angular silhouette and crystal core.
+   px(22,15,8,10,pal.ink);px(34,11,9,14,pal.ink);px(17,24,30,22,pal.ink);
+   px(24,16,5,8,accent);px(36,13,5,10,light);px(19,26,26,17,base);
+   px(15,29,7,12,pal.ink);px(43,30,7,11,pal.ink);px(17,30,5,8,base);px(44,31,4,8,base);
+   px(22,43,8,9,pal.ink);px(35,43,8,9,pal.ink);px(24,44,4,7,base);px(37,44,4,7,base);
+   px(27,27,10,12,pal.ink);px(29,25,7,12,'#8cecff');px(30,27,4,7,light);px(31,28,2,4,accent);
+   px(22,29,4,3,eye);px(38,30,4,3,eye);px(23,29,1,1,light);px(39,30,1,1,light);
+   px(21,37,5,2,accent);px(39,38,5,2,light);px(27,42,3,2,dark);
+ }else if(kind==='影'){
+   // Broken, asymmetrical silhouette with a trailing shadow mantle.
+   px(22,17,22,10,pal.ink);px(18,24,27,20,pal.ink);px(22,21,18,21,base);
+   px(12,28,10,15,pal.ink);px(8,35,11,8,base);px(42,28,9,14,pal.ink);px(47,37,8,7,base);
+   px(23,40,8,11,pal.ink);px(36,39,7,12,pal.ink);px(25,41,4,8,base);px(37,40,3,8,base);
+   px(24,26,6,4,accent);px(35,25,7,4,accent);px(25,27,3,2,eye);px(36,26,3,2,eye);
+   px(28,34,7,2,pal.ink);px(30,37,4,2,accent);
+   px(15,19,4,3,light);px(45,20,3,4,accent);px(10,45,5,2,accent);
+ }else if(kind==='水棲'){
+   // Streamlined body with fin silhouette and gill marks.
+   px(18,25,29,17,pal.ink);px(20,24,25,15,base);px(27,18,12,9,base);
+   px(10,27,12,8,pal.ink);px(11,26,10,6,accent);px(45,26,11,8,pal.ink);px(47,27,9,5,base);
+   px(26,16,6,6,light);px(34,16,6,6,accent);
+   px(22,39,8,10,pal.ink);px(35,39,8,10,pal.ink);px(24,40,4,7,base);px(37,40,4,7,base);
+   px(25,28,4,3,eye);px(37,28,4,3,eye);px(26,28,1,1,light);px(38,28,1,1,light);
+   for(let i=0;i<3;i++)px(20+i*3,33,1,4,accent);
+   px(30,35,5,2,pal.ink);px(29,37,7,1,light);px(15,36,4,2,light);
+ }else if(kind==='鳥'){
+   // Feathered crest, hooked beak, folded wing and long legs.
+   px(21,24,24,19,pal.ink);px(23,24,20,16,base);px(26,16,15,12,base);
+   px(26,12,4,8,accent);px(31,9,4,10,light);px(36,13,4,7,accent);
+   px(39,20,9,5,pal.ink);px(46,21,7,4,accent);px(50,22,4,2,pal.ink);
+   px(12,27,14,12,pal.ink);px(14,28,11,9,accent);px(17,30,8,6,base);
+   px(27,41,4,10,pal.ink);px(36,41,4,10,pal.ink);px(25,49,8,2,accent);px(34,49,8,2,accent);
+   px(28,24,4,3,eye);px(29,24,1,1,light);px(38,23,3,3,eye);
+   px(25,34,11,3,light);px(28,37,6,2,accent);
+ }else if(kind==='機械'){
+   // Segmented chassis, side pistons and a recessed energy lens.
+   px(22,15,21,10,pal.ink);px(18,24,29,23,pal.ink);px(21,26,23,18,base);
+   px(13,27,8,13,pal.ink);px(15,29,5,8,accent);px(45,27,8,13,pal.ink);px(47,29,4,8,accent);
+   px(22,43,9,9,pal.ink);px(35,43,9,9,pal.ink);px(24,44,5,7,base);px(37,44,5,7,base);
+   px(25,18,5,4,light);px(35,18,5,4,light);px(28,28,9,11,pal.ink);px(30,29,5,8,'#79f2e8');px(31,30,3,5,light);
+   px(23,29,4,3,eye);px(39,29,4,3,eye);px(24,29,1,1,light);px(40,29,1,1,light);
+   px(24,37,5,2,accent);px(38,37,5,2,accent);px(29,40,7,2,dark);
+ }else if(kind==='蟲'){
+   // Three clearly segmented sections, antennae and six small legs.
+   px(28,14,10,10,pal.ink);px(26,13,8,10,base);px(31,12,7,11,accent);
+   px(24,22,16,11,pal.ink);px(26,23,12,8,base);
+   px(18,30,28,15,pal.ink);px(20,31,24,12,base);
+   px(26,43,6,7,pal.ink);px(34,43,6,7,pal.ink);px(27,44,4,5,base);px(35,44,4,5,base);
+   px(27,8,2,8,pal.ink);px(35,7,2,9,pal.ink);px(26,7,2,7,accent);px(36,6,2,8,accent);
+   for(let i=0;i<3;i++){px(18+i*3,35+i%2*3,4,2,pal.ink);px(42-i*3,35+i%2*3,4,2,pal.ink);}
+   px(27,25,4,3,eye);px(34,25,4,3,eye);px(28,25,1,1,light);px(35,25,1,1,light);
+   px(24,34,3,3,accent);px(38,35,3,3,accent);
  }else{
-   px(bodyX,bodyY,bodyW,bodyH,base);px(15,29,8,12,base);px(42,29,8,12,base);
-   px(23,17,7,8,base);px(35,16,8,9,base);px(24,43,7,8,base);px(35,43,7,8,base);
-   px(23,12,7,7,accent);px(35,11,7,8,accent);
+   // Phantom: deliberately non-animal anatomy, floating orbital structures and offset core.
+   px(24,22,17,22,pal.ink);px(26,20,13,20,base);px(28,16,9,10,base);
+   px(16,18,9,5,pal.ink);px(14,16,9,4,accent);px(42,28,9,5,pal.ink);px(44,26,9,4,light);
+   px(20,35,7,11,pal.ink);px(36,34,7,12,pal.ink);px(22,36,4,8,base);px(38,35,3,8,base);
+   px(29,25,3,4,eye);px(35,24,3,4,eye);px(30,26,1,1,light);px(36,25,1,1,light);
+   px(29,32,7,3,pal.ink);px(30,33,5,1,accent);
+   // orbiting shard/ring hints are kept away from the face
+   px(7,25,4,3,accent);px(9,22,2,3,light);px(51,17,4,3,light);px(53,20,2,4,accent);
+   px(29,10,7,3,accent);px(31,7,3,4,light);
  }
- // Individual face variations and eye expression.
- const eyeY=pick([27,28,29,30],seed>>9),eye=pick(['#111629','#18233a','#251b35'],seed>>11);
- if(seed%4===0){px(24,eyeY,5,3,eye);px(36,eyeY,5,3,eye);px(25,eyeY,2,1,light);px(37,eyeY,2,1,light);}
- else if(seed%4===1){px(24,eyeY,4,4,eye);px(37,eyeY,4,4,eye);px(25,eyeY,1,2,light);px(38,eyeY,1,2,light);}
- else if(seed%4===2){px(24,eyeY,5,2,eye);px(36,eyeY,5,2,eye);px(29,35,7,2,dark);}
- else{px(25,eyeY,4,4,eye);px(36,eyeY,4,4,eye);px(27,36,9,2,dark);}
- // Parent-inherited features.
- if(traits.includes('角')){px(20,9,4,10,accent);px(40,8,4,11,accent);}
- if(traits.includes('翼')||traits.includes('霊翼')){px(7,22,11,7,accent);px(46,21,11,8,accent);px(9,25,8,5,base);px(48,24,8,5,base);}
- if(traits.includes('長尾')||traits.includes('尾')){px(43,39,12,4,base);px(53,37,5,5,accent);}
- if(traits.includes('触角')){px(25,5,2,9,accent);px(37,4,2,10,accent);}
- if(traits.includes('結晶')||traits.includes('宝石核')){px(29,22,6,8,'#8cecff');px(30,23,4,5,light);}
- if(traits.includes('蔓')){px(12,36,8,3,'#68d77f');px(8,33,5,5,'#68d77f');}
- // Higher tiers change anatomy, not just the displayed resolution.
+ // Universal pixel-cluster shading: a consistent top-left light source and deliberate highlight bands.
+ if(kind!=='影'){
+   px(23,24,5,2,light);px(25,26,3,1,accent);
+   px(20,42,3,2,dark);px(40,41,3,2,dark);
+ }
+ // Parent-inherited traits are treated as compatible organs, not stickers on every body.
+ if(traits.includes('角') && !['鉱石','鳥','蟲'].includes(kind)){
+   px(22,15,3,7,pal.ink);px(23,14,2,7,accent);px(39,14,3,7,pal.ink);px(40,13,2,7,accent);
+ }
+ if((traits.includes('翼')||traits.includes('霊翼')) && !['鳥','竜'].includes(kind)){
+   px(9,24,10,8,pal.ink);px(11,24,7,5,accent);px(45,23,10,8,pal.ink);px(47,23,7,5,base);
+ }
+ if(traits.includes('長尾')||traits.includes('尾')){
+   if(!['獣','竜'].includes(kind)){px(42,38,9,4,pal.ink);px(49,36,7,4,pal.ink);px(44,38,9,2,accent);}
+ }
+ if(traits.includes('触角') && kind!=='蟲'){px(25,10,2,7,pal.ink);px(26,9,1,7,accent);px(38,9,2,7,pal.ink);px(39,8,1,7,accent);}
+ if((traits.includes('結晶')||traits.includes('宝石核')) && kind!=='鉱石'){
+   px(29,21,7,9,pal.ink);px(30,21,5,8,'#8cecff');px(31,22,3,5,light);
+ }
+ if(traits.includes('蔓') && kind!=='植物'){px(13,36,7,2,'#3e9b63');px(11,33,3,4,'#68d77f');px(17,39,4,2,'#68d77f');}
+ // Mutations change anatomy in a controlled, species-compatible way.
  if(tier>=1){
-   if(seed%2===0){px(16,19,5,8,accent);px(43,18,5,9,accent);}else{px(20,14,4,7,accent);px(40,14,4,7,base);}
-   px(20,39,4,3,dark);px(40,39,4,3,dark);
-   for(let i=0;i<4;i++){let x=12+((seed>>(i*3))%40),y=23+((seed>>(i*2+1))%22);px(x,y,2,2,i%2?accent:dark);}
+   if(seed%2===0){px(16,22,4,6,accent);px(44,21,4,7,base);}else{px(19,17,3,6,accent);px(41,17,3,6,accent);}
+   for(let i=0;i<3;i++){let x=15+((seed>>(i*4))%34),y=25+((seed>>(i*3+1))%18);px(x,y,2,1,i%2?accent:light);}
  }
  if(tier>=2){
-   // armor plates, claws, asymmetrical extra limbs
-   px(22,24,5,7,accent);px(37,26,5,8,accent);px(18,42,4,6,accent);px(43,42,4,6,accent);
-   px(seed%2?10:47,33,7,3,accent);px(26,19,4,4,light);px(35,20,4,4,light);
-   for(let i=0;i<6;i++)px(14+((seed>>(i*2))%36),16+((seed>>(i*3+1))%32),1,3,accent);
+   // Rare: visible, coherent armor/ornament clusters placed along the body.
+   px(19,31,5,5,pal.ink);px(20,31,3,3,accent);px(39,33,5,5,pal.ink);px(40,33,3,3,light);
+   px(25,20,4,3,pal.ink);px(26,20,2,2,light);
+   for(let i=0;i<4;i++){let x=18+((seed>>(i*3))%28),y=18+((seed>>(i*2+1))%28);px(x,y,1,2,i%2?accent:light);}
  }
  if(tier>=3){
-   // extra organ, branching horns and luminous markings
-   px(25,4,4,11,accent);px(35,3,4,12,accent);px(5,25,6,4,light);px(53,24,6,4,light);
-   px(29,23,6,8,'#79f2e8');px(30,24,4,5,light);
-   px(14,44,5,5,dark);px(45,43,5,6,dark);
-   for(let i=0;i<9;i++){let x=6+((seed>>(i%16))%52),y=7+((seed>>(i%13+1))%46);px(x,y,2,2,i%3===0?'#fff1a8':accent);}
+   // Ultra Rare: one signature organ, branching silhouette and controlled luminous marks.
+   px(28,7,3,8,pal.ink);px(29,6,2,8,accent);px(35,8,3,7,pal.ink);px(36,7,2,7,light);
+   px(7,29,5,3,pal.ink);px(8,29,3,1,light);px(52,30,5,3,pal.ink);px(53,30,3,1,accent);
+   px(29,22,6,8,pal.ink);px(30,23,4,6,'#79f2e8');px(31,24,2,3,light);
+   for(let i=0;i<5;i++){let x=8+((seed>>(i*3))%48),y=10+((seed>>(i*2+1))%39);px(x,y,1,2,i%2?accent:light);}
  }
  if(tier>=4){
-   // phantom-class crest, halo and unique sigil-like ornaments
-   px(19,3,26,2,'#ff8fe0');px(19,3,2,8,'#ff8fe0');px(44,3,2,8,'#ff8fe0');
-   px(28,1,8,3,'#fff0a8');px(4,28,4,4,'#c6a5ff');px(56,27,4,4,'#c6a5ff');
-   px(26,47,4,3,'#83fff4');px(34,47,4,3,'#83fff4');
- }
- // Texture and highlight edges make larger output resolutions feel intentional.
- if(tier>=2){
-   px(18,25,3,2,light);px(43,27,3,2,light);px(22,46,4,2,accent);
+   // Phantom: a restrained orbital motif instead of simply adding more decorations.
+   px(20,4,24,2,pal.ink);px(22,3,20,1,'#ff8fe0');px(20,4,2,6,'#ff8fe0');px(42,4,2,6,'#ff8fe0');
+   px(29,2,7,3,'#fff0a8');px(30,3,5,1,light);
+   px(5,27,4,3,'#c6a5ff');px(55,26,4,3,'#c6a5ff');
  }
  ctx.restore();
 }
