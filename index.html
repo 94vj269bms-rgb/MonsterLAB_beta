@@ -18,8 +18,8 @@ nav button,.btn{border:1px solid #435078;border-radius:12px;background:#222b4a;c
 .breed-actions{display:flex;gap:8px;margin-top:12px}.breed-actions button{flex:1}.note{font-size:11px;color:var(--muted);margin-top:9px}
 .result{display:none;text-align:center;border-color:#8c7ac8;background:radial-gradient(ellipse at center,#28264b,#151a31)}.result.show{display:block}.result canvas,.result .sprite-art{display:block;width:128px;height:128px;max-width:100%;object-fit:contain;image-rendering:pixelated;margin:8px auto}.result h3{margin:4px 0}.tag{display:inline-block;border:1px solid #53648b;border-radius:999px;padding:2px 9px;font-size:11px;color:var(--mint);margin:2px}.lore{font-size:13px;color:#d4dcf4;max-width:540px;margin:8px auto}
 .milestone{display:none;border:1px solid #ffcf70;background:linear-gradient(130deg,#49371b,#29203b);border-radius:14px;padding:14px;margin:12px 0;text-align:center;box-shadow:0 0 22px #ffcc5b30}.milestone.show{display:block}.milestone strong{color:var(--gold);font-size:17px}.milestone p{font-size:12px;color:#f7e9c7;margin:5px 0 0}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.monster{background:#10162a;border:1px solid #303c60;border-radius:14px;padding:10px;min-width:0;overflow:hidden}.monster .art{display:flex;justify-content:center;background:radial-gradient(ellipse,#273153,#11172b);border-radius:10px;margin-bottom:8px}.monster canvas{width:112px;height:112px;image-rendering:pixelated;max-width:100%}.monster h3{font-size:13px;margin:2px 0}.meta{font-size:10px;color:var(--muted)}.monster p{font-size:11px;color:#cbd4ed;margin:6px 0 0}.starter-monster{text-align:center}.starter-monster h3{font-size:14px;margin:5px 0 1px}.starter-monster .art{margin-bottom:4px}.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}.section{display:none}.section.active{display:block}.log{list-style:none;padding:0;margin:0}.log li{border-bottom:1px solid #2c3554;padding:9px 0;font-size:12px}.log li:last-child{border-bottom:0}.log time{display:block;font-size:10px;color:var(--muted)}.foot{text-align:center;color:#7784a8;font-size:10px;padding:14px}
-@media(min-width:600px){main{padding:20px}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.monster canvas{width:128px;height:128px}.panel{padding:18px}.parents{max-width:620px;margin:auto}}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.monster{background:#10162a;border:1px solid #303c60;border-radius:14px;padding:10px;min-width:0;overflow:hidden}.monster .art{display:flex;justify-content:center;background:radial-gradient(ellipse,#273153,#11172b);border-radius:10px;margin-bottom:8px}.monster canvas{width:128px;height:128px;image-rendering:pixelated;image-rendering:crisp-edges;max-width:100%}.monster h3{font-size:13px;margin:2px 0}.meta{font-size:10px;color:var(--muted)}.monster p{font-size:11px;color:#cbd4ed;margin:6px 0 0}.starter-monster{text-align:center}.starter-monster h3{font-size:14px;margin:5px 0 1px}.starter-monster .art{margin-bottom:4px}.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}.section{display:none}.section.active{display:block}.log{list-style:none;padding:0;margin:0}.log li{border-bottom:1px solid #2c3554;padding:9px 0;font-size:12px}.log li:last-child{border-bottom:0}.log time{display:block;font-size:10px;color:var(--muted)}.foot{text-align:center;color:#7784a8;font-size:10px;padding:14px}
+@media(min-width:600px){main{padding:20px}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.monster canvas{width:144px;height:144px}.panel{padding:18px}.parents{max-width:620px;margin:auto}}
 @media(max-width:360px){.grid{grid-template-columns:1fr}.stats{gap:5px}.stat b{font-size:18px}nav button{font-size:11px;padding:10px 4px}}
 
 .sprite-art{width:128px;height:128px;object-fit:contain;image-rendering:pixelated;max-width:100%;-ms-interpolation-mode:nearest-neighbor}
@@ -2518,6 +2518,11 @@ load();render();updateBatchPanel();
   // sturdy digging paws with ivory claws
   poly(c,[[19,40],[24,40],[25,44],[23,49],[18,49],[17,45]],I);poly(c,[[20,41],[23,41],[23,46],[21,47],[19,45]],S);px(c,[[18,48],[20,49],[22,49]],C);
   poly(c,[[31,42],[36,40],[39,43],[38,48],[33,49],[30,46]],I);poly(c,[[32,43],[35,42],[37,44],[36,47],[33,47]],B);px(c,[[32,48],[35,49],[37,48]],C);
+  // prominent hooked digging claws, separated from the brown paws
+  poly(c,[[18,46],[20,47],[20,50],[18,52],[17,50]],I);poly(c,[[18,47],[19,48],[19,50],[18,51]],W);
+  poly(c,[[21,47],[23,47],[23,50],[21,52],[20,50]],I);poly(c,[[21,48],[22,48],[22,50],[21,51]],C);
+  poly(c,[[32,46],[34,47],[34,50],[32,52],[31,50]],I);poly(c,[[32,47],[33,48],[33,50],[32,51]],W);
+  poly(c,[[35,47],[37,46],[38,49],[36,52],[35,50]],I);poly(c,[[36,47],[37,48],[36,50]],C);
   // moss cap and tiny sprout
   poly(c,[[20,22],[22,19],[27,18],[31,19],[35,17],[40,19],[43,22],[39,24],[31,25],[24,24]],I);
   poly(c,[[22,21],[25,19],[30,20],[34,18],[39,20],[41,22],[36,23],[29,23],[24,23]],G);px(c,[[25,20],[29,20],[34,19],[38,21]],GL);
@@ -2538,7 +2543,11 @@ load();render();updateBatchPanel();
   poly(c,[[18,27],[22,23],[28,21],[35,23],[39,28],[38,35],[34,39],[27,39],[21,36],[18,32]],I);poly(c,[[20,28],[23,24],[28,23],[34,25],[37,29],[36,34],[32,37],[27,37],[22,34],[20,31]],M);
   poly(c,[[21,28],[24,26],[28,27],[27,32],[23,33],[21,31]],C);poly(c,[[29,27],[33,26],[36,29],[35,32],[31,33],[29,31]],C);
   rect(c,23,28,3,3,I);rect(c,24,28,2,2,'#f7e8b9');rect(c,25,28,1,2,I);rect(c,31,28,3,3,I);rect(c,32,28,2,2,'#f7e8b9');rect(c,33,28,1,2,I);
-  poly(c,[[26,33],[30,32],[32,34],[30,36],[27,36]],C);rect(c,28,33,2,1,P);rect(c,29,35,1,1,I);
+  // tapered fox muzzle and cheek tufts
+  poly(c,[[25,31],[29,31],[32,33],[31,36],[28,37],[25,35]],C);
+  poly(c,[[29,32],[33,32],[35,34],[32,36],[29,35]],W);rect(c,33,33,2,1,I);rect(c,33,33,1,1,P);
+  poly(c,[[20,32],[23,33],[24,36],[21,35]],I);poly(c,[[21,33],[23,34],[22,35]],C);
+  poly(c,[[34,32],[37,31],[36,35],[33,36]],I);poly(c,[[34,33],[36,32],[35,35]],C);
   px(c,[[22,35],[24,36],[33,35],[35,34],[28,24],[30,24]],W);
   return finish(s)}
  function tsunoba(canvas){const s=setup(canvas),c=s.c;const I='#1a1718',D='#38241f',S='#56342a',B='#74442e',M='#a5653c',L='#cb8950',H='#edb46b',C='#f0d5a2',P='#e28b75';ell(c,8,50,48,6,'#282228');
@@ -2551,9 +2560,15 @@ load();render();updateBatchPanel();
   // head and snout forward
   poly(c,[[10,29],[13,24],[19,23],[24,25],[27,29],[28,34],[25,38],[20,40],[14,38],[11,34]],I);poly(c,[[12,29],[15,26],[20,25],[23,27],[25,30],[26,34],[23,37],[19,38],[15,36],[13,33]],B);poly(c,[[13,29],[17,27],[21,28],[22,31],[19,33],[14,32]],M);
   poly(c,[[8,31],[12,29],[17,31],[20,34],[18,38],[12,38],[8,36]],I);poly(c,[[9,32],[13,31],[17,33],[17,36],[12,36],[9,35]],P);rect(c,10,32,2,1,'#f4b29a');
-  // tusks, eye and brow
-  poly(c,[[17,35],[20,36],[20,40],[18,39],[17,37]],I);poly(c,[[18,36],[19,37],[19,39]],C);poly(c,[[23,34],[25,35],[25,38],[23,37]],I);poly(c,[[24,35],[24,37]],C);
+  // large curved ivory tusks: extend beyond the mouth so the boar reads clearly
+  poly(c,[[16,34],[19,35],[21,39],[21,43],[19,41],[18,38],[16,37]],I);
+  poly(c,[[17,35],[19,37],[20,41],[19,40],[18,37]],'#fff0c8');
+  poly(c,[[23,34],[26,35],[27,39],[26,41],[24,38]],I);
+  poly(c,[[24,35],[25,37],[25,39],[24,37]],'#fff3d5');
   rect(c,17,28,3,3,I);rect(c,18,28,2,2,'#f0c66d');rect(c,18,28,1,1,'#fff0c6');
+  // heavier shoulder mane to distinguish a wild boar from a domestic pig
+  poly(c,[[20,30],[22,27],[25,29],[27,26],[30,29],[33,27],[37,30],[35,34],[28,33],[22,34]],I);
+  px(c,[[22,29],[25,28],[28,29],[31,28],[34,30]],H);
   // shoulder plates and fur streaks
   px(c,[[23,35],[26,34],[28,36],[31,35],[34,37],[38,36],[27,40],[33,41],[40,39]],H);px(c,[[25,37],[29,38],[36,38]],S);
   // ground chips
