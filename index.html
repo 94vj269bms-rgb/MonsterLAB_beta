@@ -2485,21 +2485,22 @@ load();render();updateBatchPanel();
 
 /* MUTERRA Beast Art V2: improved first three normal monsters */
 /* MUTERRA Beast Normal Art Pass v2
- * Three consistent 64x64 pixel sprites, enlarged 4x with nearest-neighbour.
+ * Korogg uses a 128x128 logical canvas; the other two beasts retain 64x64. Output is 256x256 with nearest-neighbour.
  * Usage: drawMUTERRA_BeastArtV2('beast_normal_01', canvas) // Korogg
  *        drawMUTERRA_BeastArtV2('beast_normal_02', canvas) // Hanero
  *        drawMUTERRA_BeastArtV2('beast_normal_03', canvas) // Tsunoba
  */
 (function(global){
  const G=64, OUT=256;
- function setup(canvas){canvas.width=OUT;canvas.height=OUT;const out=canvas.getContext('2d');out.imageSmoothingEnabled=false;out.clearRect(0,0,OUT,OUT);const low=document.createElement('canvas');low.width=G;low.height=G;return {out,c:low.getContext('2d'),low};}
+ function setup(canvas, grid=G){canvas.width=OUT;canvas.height=OUT;const out=canvas.getContext('2d');out.imageSmoothingEnabled=false;out.clearRect(0,0,OUT,OUT);const low=document.createElement('canvas');low.width=grid;low.height=grid;return {out,c:low.getContext('2d'),low};}
  function rect(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h)}
  function poly(c,p,col){c.fillStyle=col;c.beginPath();c.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)c.lineTo(p[i][0],p[i][1]);c.closePath();c.fill()}
  function ell(c,x,y,w,h,col){c.fillStyle=col;c.beginPath();c.ellipse(x+w/2,y+h/2,w/2,h/2,0,0,Math.PI*2);c.fill()}
  function px(c,arr,col){for(const [x,y] of arr)rect(c,x,y,1,1,col)}
  function finish(s){s.out.imageSmoothingEnabled=false;s.out.drawImage(s.low,0,0,OUT,OUT);return true}
  function korogg(canvas){
-  const s=setup(canvas),c=s.c;
+  const s=setup(canvas,128),c=s.c;
+  c.scale(2,2); // Preserve the established silhouette while rendering on a true 128px grid.
   const I='#17151b',D='#302027',S='#4b3028',B='#70452f',M='#99603b',L='#c1844c',H='#e2ad69',C='#e8d4aa',W='#fff0ce',P='#d85e69',G='#526d2e',GL='#8fa94b';
   // Grounded, low silhouette: rump, heavy shoulder, and digging posture.
   ell(c,7,51,51,6,'#272128');
@@ -2546,6 +2547,19 @@ load();render();updateBatchPanel();
   // tiny sprout and soil chips
   rect(c,31,17,1,3,D);rect(c,32,16,1,2,L);poly(c,[[32,16],[34,14],[35,15],[34,17]],GL);
   px(c,[[8,48],[12,50],[15,49],[27,51],[32,50],[45,49],[49,48],[53,50]],M);
+  // Add finer 1px fur, whisker roots and claw glints on the 128x128 logical grid.
+  c.setTransform(1,0,0,1,0,0);
+  px(c,[[39,48],[43,46],[47,47],[51,49],[55,47],[60,49],[65,47],[70,49],[75,50],[81,54],[86,58],[90,63],
+        [43,61],[48,64],[53,66],[58,64],[63,68],[69,67],[74,70],[80,69],[86,73],[91,76],
+        [47,78],[52,81],[58,83],[64,84],[70,86],[76,85],[82,83],[88,80]],H);
+  px(c,[[51,91],[57,94],[63,96],[70,96],[76,94],[82,91],[89,88]],D);
+  // Fine whiskers remain subtle and do not cross the eye or nose.
+  px(c,[[29,70],[25,72],[21,73],[27,74],[23,76],[29,77],[34,78]],C);
+  // Extra moss veins and mineral flecks make the signature crest readable at close range.
+  px(c,[[45,43],[48,42],[51,43],[54,45],[60,44],[63,42],[66,43],[70,44],[74,45]],GL);
+  px(c,[[73,39],[76,36],[79,35],[82,37],[78,40]],MOSS);
+  // Individual claw highlights, plus small soil grains.
+  px(c,[[88,96],[92,98],[96,96],[102,104],[107,106],[31,105],[38,108],[44,106]],W);
   return finish(s)
  }
  function hanero(canvas){const s=setup(canvas),c=s.c;const I='#1b1820',D='#4b2c29',S='#75412f',O='#b7653d',M='#d98a4d',L='#f0b86b',C='#f3dfbd',W='#fff0d7',P='#b95750';ell(c,11,50,42,5,'#27232a');
