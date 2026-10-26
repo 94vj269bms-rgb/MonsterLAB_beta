@@ -2009,8 +2009,20 @@ function artFor(m){return null;} // 固有画像は使わず、全個体をコ�
 function pixelSize(m){return m.rarity==='ノーマル'?32:m.rarity==='変異'?64:m.rarity==='レア'?128:m.rarity==='超レア'?256:256}
 const LUMIPON_BASE_SPRITE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAADHUlEQVR42u3du2oUURwH4DPiAwgiZmsVtVG8BHwDUUPsRFAEkRRWWlilsIiSysbKIoggCGqXEA32IkK8oE0S1NasiOAbjEWyyCzZZGZ357rfV2Vnb7M7Z37nf2bmbEIAAAAAAAAAAAAAmiBq6gfbf+B0vN39v358iGz+EHb5Ckbb7qZ/wPbHu4nbY6dmbHUJQOMSYKc+v9fjR70WkAASoKF9/+JFW1cCoAGgAaABoAFQyVFA2vF70eP1qq6XBKDZxwG6x+9jE/OVWp+qrJcEoFkJcHl6cfOvuUrUImWvjwSgmQmQ9axdXcR/FxKfK9ozGUkAJEDp1r/YyhIADQANgFGsAQqSV9XfPboY9vtKAAnAdm6/m0rcfj47oQZAAhS2x4XQ31m3up+tK+qIqQQwDEQDQA1AqGS1n/dsZgkw4go/Z91vdft59siWy09Mr5b6BQ56VfCtx+14kAQa9P0lgBpguOI4jkMIIYqiQtMlr9nATbn6VwIwGqOAzh7b/r6cXH5wPNekGHYN9P+q5KSHN8YiCUD1EuD16kbfv7SWvH3+SLIW6FW1/nxxNa5iYgyr2lYDoAbo5zhA6+yl7R8wPVPqepsdjASo5Gigqw8vW7xyr0fyzaU6/pBX0kgACTAc3dX+qCdGXeZASgAJUC2tY4eTCzLO7fMLoRIAo4DeVfW3m1OZkqOss4FFHV+QABKgJlrHe9wxn2lPPfRorlJ7uhoACTCI7v8J1LcdRhuDJkTa5xd9bkECGAaiAaAGqM14fnOmTPvT02zPO3ktU83w4P7bxO07Z/ZuLH//p5J9uQRgNEcBHUvrR7dcfq61YitLAGqTAOtf17a+o9fyrK//5qWtLgEoPQE6VXXHs4XfIYQQrkzuy1TVdzx5tZzqcWl1r0fZs5AlAEYB27l+YdzWlADUPgHy7mub2pdLAOqVAGmPqSMByFHlzlh1z6hJ++tgac++5f36EgANAA0ANcBgfX+/evXVeb++BMBxgGHKOss363X7eb++BEADQANAA0ADwCggq7yr7lH9PQAJgAaABgAAAAAAAAAAAADQKP8A82bckvW1DcUAAAAASUVORK5CYII=";
 function makeArtElement(m,cls='sprite-art'){
+ // 固有ドット絵が登録されているプレビュー個体は、その描画関数を使う。
+ if(m && m.spriteId){
+   const size=256;const c=document.createElement('canvas');c.width=size;c.height=size;c.className=cls;c.dataset.pixelSize=size;c.style.imageRendering='pixelated';
+   const batch=Number(m.spriteBatch||1);const fn=window['drawMUTERRA'+(batch===1?'':('_Batch'+String(batch).padStart(2,'0')))];
+   const fallback=window['drawMUTERRA_Batch'+String(batch).padStart(2,'0')];
+   try{
+     if(m.spriteId==='beast_normal_01' && window.drawMUTERRA_BeastArtV2) window.drawMUTERRA_BeastArtV2(m.spriteId,c);
+     else if(typeof fallback==='function') fallback(m.spriteId,c);
+     else if(typeof fn==='function') fn(m.spriteId,c);
+     else drawGeneratedSprite(c,m);
+   }catch(e){drawGeneratedSprite(c,m)}
+   return c;
+ }
  // The first Normal beast uses a handcrafted transparent PNG master sprite.
- // All other monsters keep the existing generated renderer until their art assets are authored.
  if(m && String(m.id)==='s0' && m.kind==='獣' && m.rarity==='ノーマル'){
    const img=document.createElement('img');img.className=cls;img.alt=m.name;img.src=LUMIPON_BASE_SPRITE;img.width=128;img.height=128;img.draggable=false;return img;
  }
@@ -2547,6 +2559,19 @@ $('exportBtn')?.addEventListener('click',()=>{const blob=new Blob([JSON.stringif
 $('importBtn')?.addEventListener('click',()=>$('importFile').click());
 $('importFile')?.addEventListener('change',async ev=>{const file=ev.target.files&&ev.target.files[0];if(!file)return;try{const d=JSON.parse(await file.text());if(!d||!Array.isArray(d.found)||!Array.isArray(d.logs)||!Number.isFinite(d.breedCount)||!Number.isFinite(d.nextId)||d.found.length<1||!d.found.every(m=>m&&typeof m.name==='string'&&KINDS.includes(m.kind)&&RARITY_ORDER.includes(m.rarity))){throw new Error('invalid backup')}if(!confirm('現在の記録をバックアップ内容で置き換えますか？'))return;state={breedCount:d.breedCount,found:d.found,logs:d.logs,nextId:d.nextId,pendingBatch:d.pendingBatch||null,unlockedBatch:d.unlockedBatch||null,normalSinceAd:Number.isFinite(d.normalSinceAd)?d.normalSinceAd:0};save();render();updateBatchPanel();$('result').classList.remove('show');alert('バックアップを復元しました。')}catch(e){alert('復元できませんでした。有効なMONSTER LABのバックアップJSONを選んでください。')}finally{ev.target.value=''}});
 $('resetBtn').addEventListener('click',()=>{if(confirm('配合記録・発見個体・ログをすべて初期化しますか？')){localStorage.removeItem(STORE);state={breedCount:0,found:STARTERS.map(x=>({...x})),logs:[],nextId:7,pendingBatch:null,unlockedBatch:null,normalSinceAd:0};$('milestone').classList.remove('show');$('result').classList.remove('show');render();save()}});
+window.addEventListener('muterra:register-roster',ev=>{
+ const roster=Array.isArray(ev.detail)?ev.detail:[];
+ const kindMap={'獣':'獣','植物':'植物','鉱石':'鉱石','鳥':'鳥','機械':'機械','蟲':'蟲','水棲':'水棲','竜':'竜','精霊':'精霊','影':'影','幻獣':'幻獣'};
+ const colorMap={'獣':'#f4b86c','植物':'#76c978','鉱石':'#9aabcc','鳥':'#f1ce62','機械':'#94a9b9','蟲':'#70c66b','水棲':'#5bbce9','竜':'#ed795e','精霊':'#7fd7d0','影':'#7772ba','幻獣':'#b48be8'};
+ const accentMap={'獣':'#fff0a8','植物':'#d8ff9b','鉱石':'#e3efff','鳥':'#fff8c2','機械':'#7df5d6','蟲':'#f4d76e','水棲':'#b5f8ff','竜':'#ffcf76','精霊':'#e0fff7','影':'#d1a5ff','幻獣':'#ffc6f5'};
+ let changed=false;
+ for(const item of roster){
+  const id=String(item[0]);if(state.found.some(m=>String(m.id)===id)||state.found.some(m=>m.spriteId===id))continue;
+  const [spriteId,name,kind,motif,batch]=item;
+  state.found.push({id:spriteId,spriteId,spriteBatch:batch,name,kind:kindMap[kind]||kind,color:colorMap[kind]||'#9aabcc',accent:accentMap[kind]||'#e3efff',rarity:'ノーマル',motif,traits:[],genes:{},desc:`${motif}をモチーフにした初期研究個体。`});changed=true;
+ }
+ if(changed){save();render();}
+});
 load();render();updateBatchPanel();
 })();
 </script>
@@ -2708,6 +2733,7 @@ load();render();updateBatchPanel();
  ];
  const drawers={1:window.drawMUTERRA,2:window.drawMUTERRA_Batch02,3:window.drawMUTERRA_Batch03,4:window.drawMUTERRA_Batch04,5:window.drawMUTERRA_Batch05,6:window.drawMUTERRA_Batch06,7:window.drawMUTERRA_Batch07,8:window.drawMUTERRA_Batch08,9:window.drawMUTERRA_Batch09,10:window.drawMUTERRA_Batch10,11:window.drawMUTERRA_Batch11,12:window.drawMUTERRA_Batch12,13:window.drawMUTERRA_Batch13,14:window.drawMUTERRA_Batch14,15:window.drawMUTERRA_Batch15,16:window.drawMUTERRA_Batch16,17:window.drawMUTERRA_Batch17};
  const grid=document.getElementById('muterraSpriteGrid');
+ window.dispatchEvent(new CustomEvent('muterra:register-roster',{detail:roster}));
  roster.forEach(([id,name,species,motif,batch])=>{
    const card=document.createElement('article');card.className='monster';
    const art=document.createElement('div');art.className='art';art.style.padding='8px';
