@@ -2513,7 +2513,7 @@ function breed(options={}){if(selectionMode==='randomEach'){lockedParents=[rando
  if(rarity==='幻'&&state.found.filter(x=>x.kind===kind&&x.rarity==='幻').length>=3)rarity='超レア';
  const knownKinds=new Set(state.found.map(x=>x.kind));
  const knownRarities=new Set(state.found.map(x=>x.rarity));
- let m={id:state.nextId++,name,kind,color:colors[idx],accent:accents[idx],rarity,motif:motifs[kind],traits:inheritedTraits(a,b,h),genes:inheritGenes(a,b,h,kind),desc:''};m.desc=lore(m);
+ let m={id:state.nextId++,name,kind,color:colors[idx]||'#9aabcc',accent:accents[idx]||'#e3efff',rarity,motif:motifs[kind]||'mythic',traits:inheritedTraits(a,b,h),genes:inheritGenes(a,b,h,kind),parents:[String(a.id),String(b.id)],generation:Math.max(Number(a.generation)||0,Number(b.generation)||0)+1,desc:''};m.desc=lore(m);
  let duplicate=state.found.some(x=>x.name===m.name&&x.kind===m.kind&&x.rarity===m.rarity);
  if(!knownKinds.has(m.kind)){const text=`${m.name}の誕生により、新しい種族を発見しました。`;discoveryQueue.push({icon:'🧬',title:`初めての${m.kind}種！`,text,logText:`種族発見：${text}`});}
  if(!knownRarities.has(m.rarity)){const text=`${m.name}が初めての${m.rarity}個体です。`;discoveryQueue.push({icon:'✦',title:`初めての${m.rarity}！`,text,logText:`レアリティ発見：${text}`});}
@@ -2568,7 +2568,28 @@ window.addEventListener('muterra:register-roster',ev=>{
  for(const item of roster){
   const id=String(item[0]);if(state.found.some(m=>String(m.id)===id)||state.found.some(m=>m.spriteId===id))continue;
   const [spriteId,name,kind,motif,batch]=item;
-  state.found.push({id:spriteId,spriteId,spriteBatch:batch,name,kind:kindMap[kind]||kind,color:colorMap[kind]||'#9aabcc',accent:accentMap[kind]||'#e3efff',rarity:'ノーマル',motif,traits:[],genes:{},desc:`${motif}をモチーフにした初期研究個体。`});changed=true;
+  const normalizedKind=kindMap[kind]||kind;
+  // Preview sprites become real game individuals: assign usable inheritance genes
+  // and trait tags rather than leaving them as gallery-only records.
+  const geneBySpecies={
+   '獣':{body:'beast',eyes:'round',nose:'standard',limbs:'strong',claws:'ivory',ears:'pointed',tail:'long',horns:'none',wings:'none',pattern:'speckled',size:1},
+   '植物':{body:'plant',eyes:'round',nose:'none',limbs:'rooted',claws:'none',ears:'none',tail:'leaf',horns:'leaf',wings:'none',pattern:'veined',size:1},
+   '鉱石':{body:'ore',eyes:'glow',nose:'crystal',limbs:'heavy',claws:'stone',ears:'none',tail:'none',horns:'crystal',wings:'none',pattern:'faceted',size:1.05},
+   '鳥':{body:'bird',eyes:'round',nose:'beak',limbs:'light',claws:'talon',ears:'none',tail:'feather',horns:'crest',wings:'feather',pattern:'feathered',size:.95},
+   '機械':{body:'machine',eyes:'glow',nose:'vent',limbs:'jointed',claws:'metal',ears:'antenna',tail:'cable',horns:'antenna',wings:'none',pattern:'panel',size:1},
+   '蟲':{body:'insect',eyes:'compound',nose:'mandible',limbs:'many',claws:'chitin',ears:'antenna',tail:'none',horns:'antenna',wings:'none',pattern:'segmented',size:.9},
+   '水棲':{body:'water',eyes:'round',nose:'gill',limbs:'fins',claws:'none',ears:'fin',tail:'fin',horns:'none',wings:'none',pattern:'scales',size:1},
+   '竜':{body:'dragon',eyes:'narrow',nose:'snout',limbs:'strong',claws:'ivory',ears:'pointed',tail:'long',horns:'curved',wings:'bat',pattern:'scales',size:1.1},
+   '精霊':{body:'spirit',eyes:'glow',nose:'none',limbs:'floating',claws:'none',ears:'none',tail:'mist',horns:'none',wings:'spirit',pattern:'glow',size:.95},
+   '影':{body:'shadow',eyes:'glow',nose:'none',limbs:'long',claws:'dark',ears:'pointed',tail:'mist',horns:'none',wings:'shadow',pattern:'shadow',size:1},
+   '幻獣':{body:'mythic',eyes:'glow',nose:'standard',limbs:'elegant',claws:'ivory',ears:'pointed',tail:'long',horns:'curved',wings:'spirit',pattern:'star',size:1}
+  };
+  const traitsBySpecies={
+   '獣':['耳','尾','爪'],'植物':['葉角','根'],'鉱石':['結晶','爪'],'鳥':['羽冠','翼','尾'],
+   '機械':['触角','尾'],'蟲':['触角','爪'],'水棲':['尾','鰭'],'竜':['角','翼','尾'],
+   '精霊':['霊翼','煙尾'],'影':['煙尾','霊翼'],'幻獣':['角','霊翼','尾']
+  };
+  state.found.push({id:spriteId,spriteId,spriteBatch:batch,name,kind:normalizedKind,color:colorMap[kind]||'#9aabcc',accent:accentMap[kind]||'#e3efff',rarity:'ノーマル',motif,traits:traitsBySpecies[normalizedKind]||[],genes:{...(geneBySpecies[normalizedKind]||{})},desc:`${motif}をモチーフにした初期研究個体。`,isMUTERRABase:true});changed=true;
  }
  if(changed){save();render();}
 });
