@@ -2148,10 +2148,44 @@ function inheritedTraits(a,b,h){
  return traits.slice(0,5);
 }
 function pixelResolution(rarity){return rarity==='ノーマル'?64:rarity==='変異'?96:rarity==='レア'?128:rarity==='超レア'?256:256}
+function inheritGenes(a,b,h,kind){
+ // 遺伝子は親の値を基本に片親から継承し、低確率で小さな変異を起こす。
+ const defaults={body:kind,eyes:'round',nose:'standard',limbs:'standard',claws:'standard',pattern:'plain',size:1,horns:'none',wings:'none',tail:'none',ears:'none'};
+ const ga=a.genes||{},gb=b.genes||{};const out={};
+ for(const key of Object.keys(defaults)){
+   const av=ga[key]??(key==='body'?(a.motif||a.kind):defaults[key]);
+   const bv=gb[key]??(key==='body'?(b.motif||b.kind):defaults[key]);
+   out[key]=((h>>>((Object.keys(defaults).indexOf(key)*3)%24))&1)?av:bv;
+ }
+ // 小さな変異は見た目を壊さない範囲で色相・体格・模様に反映する。
+ out.size=Math.max(0.85,Math.min(1.2,Number(out.size)||1));
+ if((h%13)===0)out.pattern=['plain','speckled','striped'][(h>>>5)%3];
+ if((h%17)===0)out.size=Math.max(0.85,Math.min(1.2,out.size+((h&1)?0.08:-0.08)));
+ // Inherit anatomical appendages as independent genes, so mixed-species offspring can combine silhouettes.
+ const partGene=(key,traitA,traitB, fallback='none')=>{
+   const hasA=(a.traits||[]).some(t=>traitA.includes(t)) || (a.kind===kind && traitA.includes(a.kind));
+   const hasB=(b.traits||[]).some(t=>traitB.includes(t)) || (b.kind===kind && traitB.includes(b.kind));
+   const inherited=out[key];
+   if(inherited && inherited!=='none') return inherited;
+   if(hasA && hasB) return (h%3===0)?'none':(key==='wings'?'feather':key==='horns'?'short':key==='tail'?'long':key==='ears'?'pointed':fallback);
+   if(hasA || hasB) return (h&1)?(key==='wings'?'feather':key==='horns'?'short':key==='tail'?'long':key==='ears'?'pointed':fallback):'none';
+   return fallback;
+ };
+ out.horns=partGene('horns',['角','葉角','羽冠','触角','結晶'],['角','葉角','羽冠','触角','結晶']);
+ out.wings=partGene('wings',['翼','霊翼','霊翼','羽'],['翼','霊翼','羽']);
+ out.tail=partGene('tail',['尾','長尾','煙尾'],['尾','長尾','煙尾']);
+ out.ears=partGene('ears',['耳'],['耳']);
+ // Gene-level mutations introduce a few discrete, visible variants.
+ if((h%11)===0)out.eyes=['round','narrow','glow'][(h>>>7)%3];
+ if((h%19)===0)out.nose=['standard','button','fang'][(h>>>9)%3];
+ if((h%23)===0)out.limbs=['standard','short','long'][(h>>>11)%3];
+ if((h%29)===0)out.claws=['standard','dark','ivory'][(h>>>13)%3];
+ return out;
+}
 function drawGeneratedSprite(canvas,m){
  const size=canvas.width,ctx=canvas.getContext('2d');
  ctx.clearRect(0,0,size,size);ctx.imageSmoothingEnabled=false;
- const scale=size/64;ctx.save();ctx.scale(scale,scale);
+ const scale=size/64;ctx.save();ctx.scale(scale,scale);const genes=m.genes||{};const bodyScale=Math.max(.85,Math.min(1.2,Number(genes.size)||1));ctx.translate(32*(1-bodyScale),32*(1-bodyScale));ctx.scale(bodyScale,bodyScale);
  const seed=hash(String(m.id)+m.name+(m.kind||'')),base=m.color||'#8ac8d2',
  accent=m.accent||'#f5e8aa',dark=m.dark||'#26364a',light=m.light||'#e9ffff';
  const px=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));};
@@ -2288,6 +2322,12 @@ function drawGeneratedSprite(canvas,m){
    px(29,21,7,9,pal.ink);px(30,21,5,8,'#8cecff');px(31,22,3,5,light);
  }
  if(traits.includes('蔓') && kind!=='植物'){px(13,36,7,2,'#3e9b63');px(11,33,3,4,'#68d77f');px(17,39,4,2,'#68d77f');}
+ // Inherited pattern gene visibly changes the offspring instead of remaining data-only.
+ if(genes.pattern==='speckled'){
+   for(let i=0;i<7;i++){const x=19+((seed>>(i%5*3))%25),y=24+((seed>>(i%4*4))%17);px(x,y,2,2,i%2?accent:light);}
+ }else if(genes.pattern==='striped'){
+   for(let i=0;i<4;i++){const x=20+i*6;px(x,25+(i%2),2,11,i%2?accent:dark);}
+ }
  // Mutations change anatomy in a controlled, species-compatible way.
  if(tier>=1){
    if(seed%2===0){px(16,22,4,6,accent);px(44,21,4,7,base);}else{px(19,17,3,6,accent);px(41,17,3,6,accent);}
@@ -2312,6 +2352,35 @@ function drawGeneratedSprite(canvas,m){
    px(29,2,7,3,'#fff0a8');px(30,3,5,1,light);
    px(5,27,4,3,'#c6a5ff');px(55,26,4,3,'#c6a5ff');
  }
+ // Visible phenotype overlays: inherited genes now alter eyes, muzzle, limbs and claws.
+ if(genes.eyes==='narrow'){
+   px(23,25,5,2,pal.ink);px(34,25,5,2,pal.ink);px(24,25,3,1,accent);px(35,25,3,1,accent);
+ }else if(genes.eyes==='glow'){
+   px(23,24,5,4,pal.ink);px(34,24,5,4,pal.ink);px(24,25,3,2,'#79f2e8');px(35,25,3,2,'#79f2e8');
+ }
+ if(genes.nose==='button'){
+   px(30,32,5,4,pal.ink);px(31,33,3,2,'#f3b5a7');
+ }else if(genes.nose==='fang'){
+   px(30,33,3,5,pal.ink);px(31,34,1,3,light);px(35,33,3,4,pal.ink);px(36,34,1,2,light);
+ }
+ if(genes.limbs==='short'){
+   px(21,42,8,5,pal.ink);px(35,42,8,5,pal.ink);px(23,42,4,4,base);px(37,42,4,4,base);
+ }else if(genes.limbs==='long'){
+   px(22,40,5,12,pal.ink);px(35,40,5,12,pal.ink);px(23,40,3,10,base);px(36,40,3,10,base);
+ }
+ if(genes.claws==='dark'){
+   px(21,49,2,3,'#10131d');px(25,49,2,3,'#10131d');px(35,49,2,3,'#10131d');px(39,49,2,3,'#10131d');
+ }else if(genes.claws==='ivory'){
+   px(21,49,2,3,'#fff2cc');px(25,49,2,3,'#fff2cc');px(35,49,2,3,'#fff2cc');px(39,49,2,3,'#fff2cc');
+ }
+ // Independent inherited body parts: small pixel-art overlays intentionally sit on top of the base silhouette.
+ if(genes.horns==='short'){px(23,17,4,7,pal.ink);px(24,16,2,6,accent);px(38,17,4,7,pal.ink);px(39,16,2,6,accent);}
+ if(genes.horns==='long'){px(22,17,4,10,pal.ink);px(23,15,2,10,accent);px(39,17,4,10,pal.ink);px(40,15,2,10,accent);}
+ if(genes.wings==='feather'){px(10,28,10,5,pal.ink);px(11,26,8,5,accent);px(12,31,7,3,light);px(44,28,10,5,pal.ink);px(45,26,8,5,accent);px(45,31,7,3,light);}
+ if(genes.wings==='bat'){px(9,26,11,9,pal.ink);px(10,27,8,6,accent);px(44,26,11,9,pal.ink);px(45,27,8,6,accent);}
+ if(genes.tail==='long'){px(44,35,8,3,pal.ink);px(50,34,7,3,base);px(56,33,4,4,pal.ink);px(57,34,2,2,accent);}
+ if(genes.tail==='leaf'){px(44,35,8,3,pal.ink);px(50,32,7,6,'#3e9b63');px(53,33,4,3,'#68d77f');}
+ if(genes.ears==='pointed'){px(19,18,5,8,pal.ink);px(20,17,3,7,base);px(39,18,5,8,pal.ink);px(40,17,3,7,base);}
  ctx.restore();
 }
 let currentResult=null;
@@ -2432,7 +2501,7 @@ function breed(options={}){if(selectionMode==='randomEach'){lockedParents=[rando
  if(rarity==='幻'&&state.found.filter(x=>x.kind===kind&&x.rarity==='幻').length>=3)rarity='超レア';
  const knownKinds=new Set(state.found.map(x=>x.kind));
  const knownRarities=new Set(state.found.map(x=>x.rarity));
- let m={id:state.nextId++,name,kind,color:colors[idx],accent:accents[idx],rarity,motif:motifs[kind],traits:inheritedTraits(a,b,h),desc:''};m.desc=lore(m);
+ let m={id:state.nextId++,name,kind,color:colors[idx],accent:accents[idx],rarity,motif:motifs[kind],traits:inheritedTraits(a,b,h),genes:inheritGenes(a,b,h,kind),desc:''};m.desc=lore(m);
  let duplicate=state.found.some(x=>x.name===m.name&&x.kind===m.kind&&x.rarity===m.rarity);
  if(!knownKinds.has(m.kind)){const text=`${m.name}の誕生により、新しい種族を発見しました。`;discoveryQueue.push({icon:'🧬',title:`初めての${m.kind}種！`,text,logText:`種族発見：${text}`});}
  if(!knownRarities.has(m.rarity)){const text=`${m.name}が初めての${m.rarity}個体です。`;discoveryQueue.push({icon:'✦',title:`初めての${m.rarity}！`,text,logText:`レアリティ発見：${text}`});}
